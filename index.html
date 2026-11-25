@@ -14,8 +14,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#ffffff">
     
-    <link rel="preload" as="image" href="crystallogo.png">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -27,25 +25,10 @@
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* Açılış Ekranı (Otomatik Kapanma Korumalı) */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
-            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
-            animation: splashAutoHide 0.4s ease-out 1.6s forwards;
-        }
-        @keyframes splashAutoHide {
-            to { opacity: 0; visibility: hidden; pointer-events: none; }
-        }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(73, 186, 213, 0.3); border-radius: 50%; border-top-color: #49bad5; animation: spin 1s ease-in-out infinite; margin-top: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
         .app-container {
             max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100dvh;
             display: flex; flex-direction: column; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.04);
-            opacity: 0; animation: fadeInApp 0.4s forwards 0.15s;
         }
-        @keyframes fadeInApp { to { opacity: 1; } }
 
         .dashed-border-y { border-top: 1px dashed #e5e7eb; border-bottom: 1px dashed #e5e7eb; }
         .dashed-border-t { border-top: 1px dashed #e5e7eb; }
@@ -89,6 +72,9 @@
         .pulse-dot { width: 5px; height: 5px; background-color: #00a2df; border-radius: 50%; animation: pulse-dot 1.5s infinite; }
         @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(0, 162, 223, 0.4); } 70% { box-shadow: 0 0 0 4px rgba(0, 162, 223, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 162, 223, 0); } }
 
+        .spinner { width: 28px; height: 28px; border: 3px solid rgba(73, 186, 213, 0.25); border-radius: 50%; border-top-color: #49bad5; animation: spin 0.9s linear infinite; margin: 0 auto 10px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -110,23 +96,18 @@
 </head>
 <body>
 
-<div id="splash-screen">
-    <img src="crystallogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-[140px] object-contain">
-    <div class="spinner"></div>
-</div>
-
 <div class="app-container">
     <div class="flex justify-between items-center px-5 pt-3.5 shrink-0">
-        <button onclick="fetchFiles(true)" class="text-gray-500 hover:text-sky-600 transition flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm active:scale-95">
+        <button type="button" onclick="fetchFiles(true)" class="text-gray-500 hover:text-sky-600 transition flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm active:scale-95">
             <i id="refresh-icon" class="fa-solid fa-rotate-right text-[10px] mr-1.5 text-[#49bad5]"></i>
             <span id="btn-refresh-text" class="text-[9px] font-bold tracking-wide uppercase">Yenile</span>
         </button>
 
         <div class="flex space-x-1 shrink-0">
-            <button onclick="changeLang('tr')" id="lang-tr" class="lang-btn active">🇹🇷 TR</button>
-            <button onclick="changeLang('en')" id="lang-en" class="lang-btn">🇬🇧 EN</button>
-            <button onclick="changeLang('de')" id="lang-de" class="lang-btn">🇩🇪 DE</button>
-            <button onclick="changeLang('ru')" id="lang-ru" class="lang-btn">🇷🇺 RU</button>
+            <button type="button" onclick="changeLang('tr')" id="lang-tr" class="lang-btn active">🇹🇷 TR</button>
+            <button type="button" onclick="changeLang('en')" id="lang-en" class="lang-btn">🇬🇧 EN</button>
+            <button type="button" onclick="changeLang('de')" id="lang-de" class="lang-btn">🇩🇪 DE</button>
+            <button type="button" onclick="changeLang('ru')" id="lang-ru" class="lang-btn">🇷🇺 RU</button>
         </div>
     </div>
 
@@ -143,7 +124,7 @@
         <div class="crystal-panel text-[11.5px] leading-relaxed text-left">
             <div class="flex items-start gap-2.5">
                 <i class="fa-solid fa-plane-departure text-white/90 text-sm mt-0.5 shrink-0"></i>
-                <p id="disclaimer-text" class="font-medium"></p>
+                <p id="disclaimer-text" class="font-medium">Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir, transfer voucher numarası üzerinden kontrol sağlayınız. Acente transferleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır. Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle.</p>
             </div>
         </div>
     </div>
@@ -155,7 +136,7 @@
     <div class="px-5 py-3.5 flex-grow">
         <div id="files-container" class="space-y-2.5">
             <div class="text-center py-10 text-gray-400 text-xs font-medium">
-                <div class="spinner mx-auto mb-3" style="width:28px; height:28px; border-width:2px;"></div>
+                <div class="spinner"></div>
                 <span id="loading-list-text">Güncel listeler kontrol ediliyor...</span>
             </div>
         </div>
@@ -166,10 +147,9 @@
     </div>
 </div>
 
-<!-- ÖZEL ÖNİZLEME MODALI -->
 <div id="preview-modal">
     <div class="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between shadow-sm shrink-0">
-        <button onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+        <button type="button" onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
             <i class="fa-solid fa-arrow-left mr-1.5 text-[#49bad5]"></i>
             <span id="modal-close-text">Kapat</span>
         </button>
@@ -179,7 +159,7 @@
             <div id="modal-file-title" class="text-[11px] font-semibold text-gray-700 truncate"></div>
         </div>
 
-        <button id="modal-download-btn" onclick="downloadCurrentFile()" class="crystal-btn px-3 py-1.5 text-xs flex items-center shrink-0">
+        <button type="button" id="modal-download-btn" onclick="downloadCurrentFile()" class="crystal-btn px-3 py-1.5 text-xs flex items-center shrink-0">
             <i class="fa-solid fa-download mr-1.5 text-[11px]"></i>
             <span id="modal-download-text">İndir</span>
         </button>
@@ -193,13 +173,13 @@
         </div>
 
         <div class="flex items-center space-x-1.5 shrink-0 ml-auto">
-            <button onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 hover:bg-slate-600 flex items-center justify-center font-bold text-sm active:scale-95">
+            <button type="button" onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 hover:bg-slate-600 flex items-center justify-center font-bold text-sm active:scale-95">
                 <i class="fa-solid fa-minus text-[10px]"></i>
             </button>
-            <button onclick="resetZoom()" id="zoom-level-label" class="px-2 h-7 rounded bg-slate-700 text-[10px] font-bold min-w-[46px]">
+            <button type="button" onclick="resetZoom()" id="zoom-level-label" class="px-2 h-7 rounded bg-slate-700 text-[10px] font-bold min-w-[46px]">
                 100%
             </button>
-            <button onclick="adjustZoom(0.35)" class="w-7 h-7 rounded bg-[#49bad5] text-white flex items-center justify-center font-bold text-sm active:scale-95">
+            <button type="button" onclick="adjustZoom(0.35)" class="w-7 h-7 rounded bg-[#49bad5] text-white flex items-center justify-center font-bold text-sm active:scale-95">
                 <i class="fa-solid fa-plus text-[10px]"></i>
             </button>
         </div>
@@ -207,7 +187,7 @@
 
     <div id="preview-viewport">
         <div id="preview-loader" class="my-auto text-center text-white">
-            <div class="spinner mx-auto mb-3" style="border-top-color:#ffffff;"></div>
+            <div class="spinner" style="border-top-color:#ffffff;"></div>
             <p id="modal-loading-text" class="text-xs text-slate-300 font-medium">Belge hazırlanıyor...</p>
         </div>
         <div id="preview-pages-wrapper" class="w-full max-w-[760px] flex flex-col items-center"></div>
@@ -227,7 +207,7 @@
             uploadedAt: "Yüklenme:", newBadge: "YENİ", viewBtn: "Görüntüle",
             close: "Kapat", download: "İndir", loadingDoc: "Belge açılıyor...",
             searchPlaceholder: "Voucher No / İsim ara...", foundPage: "Sayfa", notFound: "Yok",
-            connectionError: "Bağlantı kurulamadı. Apps Script dağıtımında 'Erişimi olanlar: Herkes' seçili olduğundan ve kodun kaydedildiğinden (Ctrl+S) emin olun."
+            connectionError: "Bağlantı kurulamadı. Apps Script dağıtımında 'Erişimi olanlar: Herkes' seçili olduğundan emin olun."
         },
         en: {
             disclaimer: "The departure information sent to us by travel agencies is listed below; please check using your transfer voucher number. Our establishment holds no responsibility regarding agency transfers. We wish you a pleasant journey and hope to welcome you again.",
@@ -272,33 +252,26 @@
     let pdfPageTexts = [];
     const fileMemoryCache = {};
 
-    function hideSplash() {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 400);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        try {
-            if (window.pdfjsLib) {
-                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            }
-            const urlParams = new URLSearchParams(window.location.search);
-            const paramLang = urlParams.get('lang');
-            const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
-
-            if (paramLang && i18n[paramLang]) currentLang = paramLang;
-            else if (i18n[browserLang]) currentLang = browserLang;
-            else currentLang = 'en';
-
-            changeLang(currentLang);
-            fetchFiles(false);
-        } finally {
-            setTimeout(hideSplash, 450);
+    // Sayfa hatasında kullanıcıyı "Güncel listeler kontrol ediliyor..." ekranında bırakmayan güvenlik ağı
+    window.addEventListener('error', function(e) {
+        const container = document.getElementById('files-container');
+        if (container && allFiles.length === 0) {
+            container.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-xs font-medium text-center">Sayfa yüklenirken bir uyarı oluştu (${escapeHtml(e.message || '')}). Yenile butonuna basın.</div>`;
         }
     });
+
+    (function initApp() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramLang = urlParams.get('lang');
+        const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
+
+        if (paramLang && i18n[paramLang]) currentLang = paramLang;
+        else if (i18n[browserLang]) currentLang = browserLang;
+        else currentLang = 'tr';
+
+        changeLang(currentLang);
+        fetchFiles(false);
+    })();
 
     function changeLang(lang) {
         currentLang = lang;
@@ -328,26 +301,27 @@
         const refreshIcon = document.getElementById('refresh-icon');
         const t = i18n[currentLang];
 
-        refreshIcon.classList.add('fa-spin');
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
         if (allFiles.length === 0) {
             container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs font-medium">
-                <div class="spinner mx-auto mb-3" style="width:28px; height:28px; border-width:2px;"></div>
+                <div class="spinner"></div>
                 <span>${t.loadingList}</span>
             </div>`;
         }
 
-        try {
-            const url = SCRIPT_API_URL + "?action=list" + (forceRefresh ? "&nocache=1&t=" + Date.now() : "");
-            const res = await fetch(url, { method: 'GET', redirect: 'follow', credentials: 'omit' });
-            const rawText = await res.text();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
 
+        try {
+            const url = SCRIPT_API_URL + "?action=list" + (forceRefresh ? "&nocache=1&t=" + Date.now() : "&t=" + Date.now());
+            const res = await fetch(url, { method: 'GET', redirect: 'follow', signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            const rawText = await res.text();
             let data;
             try {
                 data = JSON.parse(rawText);
             } catch (parseErr) {
-                if (rawText.indexOf("doGet") !== -1) {
-                    throw new Error("Apps Script'te kodu Ctrl+S ile kaydedip 'Dağıtımları yönet > Kalem > Yeni sürüm' olarak güncelleyin (doGet henüz yayında değil).");
-                }
                 throw new Error(t.connectionError);
             }
 
@@ -359,10 +333,14 @@
                 throw new Error(data.message || t.connectionError);
             }
         } catch (err) {
-            const msg = (err && err.message && err.message.indexOf("Failed to fetch") === -1) ? err.message : t.connectionError;
+            clearTimeout(timeoutId);
+            const isTimeout = err && err.name === 'AbortError';
+            const msg = isTimeout
+                ? "Sunucu yanıtı zaman aşımına uğradı. Lütfen 'Yenile' butonuna dokunun."
+                : ((err && err.message && err.message.indexOf("Failed to fetch") === -1) ? err.message : t.connectionError);
             container.innerHTML = `<div class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-xs font-semibold text-center leading-relaxed">${escapeHtml(msg)}</div>`;
         } finally {
-            refreshIcon.classList.remove('fa-spin');
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         }
     }
 
@@ -374,14 +352,14 @@
         const counts = {};
         allFiles.forEach(f => { counts[f.agency] = (counts[f.agency] || 0) + 1; });
 
-        let html = `<button onclick="selectAgency('ALL')" class="agency-chip ${selectedAgency === 'ALL' ? 'active' : ''}">
+        let html = `<button type="button" onclick="selectAgency('ALL')" class="agency-chip ${selectedAgency === 'ALL' ? 'active' : ''}">
                         ${t.allAgencies} (${allFiles.length})
                     </button>`;
 
         baseAgencies.forEach(ag => {
             const count = counts[ag] || 0;
             const label = (ag === "DIGER") ? t.otherAgency : ag;
-            html += `<button onclick="selectAgency('${ag}')" class="agency-chip ${selectedAgency === ag ? 'active' : ''} ${count === 0 ? 'opacity-55' : ''}">
+            html += `<button type="button" onclick="selectAgency('${ag}')" class="agency-chip ${selectedAgency === ag ? 'active' : ''} ${count === 0 ? 'opacity-55' : ''}">
                         ${label}${count > 0 ? ' (' + count + ')' : ''}
                      </button>`;
         });
@@ -404,7 +382,7 @@
             : allFiles.filter(f => f.agency === selectedAgency);
 
         if (filtered.length === 0) {
-            if (allFiles.length === 0 && container.querySelector('.bg-red-50')) return;
+            if (allFiles.length === 0 && container.querySelector('.bg-red-50, .bg-amber-50')) return;
             const msg = allFiles.length === 0 ? t.emptyList : t.emptyAgency;
             container.innerHTML = `
                 <div class="text-center py-10 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -476,7 +454,7 @@
         try {
             let filePayload = fileMemoryCache[fileId];
             if (!filePayload) {
-                const res = await fetch(`${SCRIPT_API_URL}?action=file&id=${encodeURIComponent(fileId)}`, { method: 'GET', redirect: 'follow', credentials: 'omit' });
+                const res = await fetch(`${SCRIPT_API_URL}?action=file&id=${encodeURIComponent(fileId)}`, { method: 'GET', redirect: 'follow' });
                 const data = await res.json();
                 if (data.status !== "ok") throw new Error(data.message || "File error");
                 filePayload = data;
