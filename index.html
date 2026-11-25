@@ -23,7 +23,14 @@
         .lang-btn { padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 9px; font-weight: 700; color: #374151; cursor: pointer; }
         .lang-btn.active { background-color: #e0f2fe; border-color: #49bad5; color: #0369a1; }
 
-        /* 2'li Sadece Görsel Önizleme Kartı */
+        .search-box {
+            display: flex; align-items: center; background: #f8fafc; border: 1.5px solid #cbd5e1;
+            border-radius: 12px; padding: 8px 12px; transition: all 0.2s ease;
+        }
+        .search-box:focus-within {
+            background: #ffffff; border-color: #49bad5; box-shadow: 0 0 0 3px rgba(73, 186, 213, 0.18);
+        }
+
         .thumb-card {
             background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
             aspect-ratio: 3 / 4; position: relative; cursor: pointer;
@@ -90,8 +97,19 @@
         </div>
     </div>
 
+    <!-- ANA EKRAN ARAMA ÇUBUĞU (İsim / Voucher No / Acente) -->
+    <div class="px-5 mt-3.5 shrink-0">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass text-[#49bad5] text-xs mr-2.5"></i>
+            <input id="main-search-input" type="text" oninput="onMainSearch(this.value)" placeholder="İsim, Voucher No veya Acente ara..." class="bg-transparent text-slate-700 placeholder-slate-400 text-xs font-medium w-full focus:outline-none">
+            <button type="button" id="main-search-clear" onclick="clearMainSearch()" class="hidden ml-2 w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center shrink-0 transition">
+                <i class="fa-solid fa-xmark text-[11px]"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- 2'li Sadece Önizleme Izgarası -->
-    <div class="px-5 py-4 flex-grow">
+    <div class="px-5 py-3.5 flex-grow">
         <div id="files-container">
             <div class="text-center py-10 text-gray-400 text-xs font-medium">
                 <div class="spinner"></div>
@@ -113,7 +131,6 @@
             <span id="modal-close-text">Kapat</span>
         </button>
 
-        <!-- Önceki / Sonraki Gezinme ve Sayaç -->
         <div class="flex items-center space-x-2">
             <button type="button" id="btn-prev-file" onclick="navigatePreview(-1)" class="w-8 h-8 rounded-lg bg-gray-100 text-slate-700 flex items-center justify-center active:scale-95 disabled:opacity-30">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
@@ -161,8 +178,10 @@ var i18n = {
         infoNotice: 'Acente transferleri ve saatleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır.',
         infoFarewell: '✦ Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle ✦',
         refresh: 'Yenile',
+        mainSearchPlaceholder: 'İsim, Voucher No veya Acente ara...',
         loadingList: 'Güncel listeler kontrol ediliyor...',
         emptyList: 'Şu an için yüklenmiş aktif bir çıkış listesi bulunmamaktadır.',
+        noSearchResult: 'Aramanızla eşleşen bir çıkış listesi bulunamadı.',
         close: 'Kapat', download: 'İndir', loadingDoc: 'Belge açılıyor...',
         searchPlaceholder: 'Voucher No / İsim ara...', foundPage: 'Sayfa', notFound: 'Yok',
         connectionError: 'Listeler alınamadı. Lütfen Yenile butonuna dokunun.'
@@ -172,8 +191,10 @@ var i18n = {
         infoNotice: 'Our establishment holds no responsibility regarding agency transfer operations or schedules.',
         infoFarewell: '✦ We wish you a pleasant journey and hope to welcome you again ✦',
         refresh: 'Refresh',
+        mainSearchPlaceholder: 'Search Name, Voucher No or Agency...',
         loadingList: 'Checking latest departure lists...',
         emptyList: 'There are currently no active departure lists available.',
+        noSearchResult: 'No departure list matched your search.',
         close: 'Close', download: 'Download', loadingDoc: 'Opening document...',
         searchPlaceholder: 'Search Voucher No...', foundPage: 'Page', notFound: '0',
         connectionError: 'Could not load lists. Please tap Refresh.'
@@ -183,8 +204,10 @@ var i18n = {
         infoNotice: 'Für Agenturtransfers und Abholzeiten übernimmt unser Haus keinerlei Haftung.',
         infoFarewell: '✦ Wir wünschen Ihnen eine angenehme Reise und freuen uns auf ein Wiedersehen ✦',
         refresh: 'Aktualisieren',
+        mainSearchPlaceholder: 'Name, Vouchernr. oder Agentur suchen...',
         loadingList: 'Aktuelle Abreiselisten werden geladen...',
         emptyList: 'Derzeit sind keine aktiven Abreiselisten vorhanden.',
+        noSearchResult: 'Keine passende Abreiseliste gefunden.',
         close: 'Schließen', download: 'Laden', loadingDoc: 'Dokument wird geöffnet...',
         searchPlaceholder: 'Vouchernr. suchen...', foundPage: 'Seite', notFound: '0',
         connectionError: 'Verbindungsfehler. Bitte tippen Sie auf Aktualisieren.'
@@ -194,8 +217,10 @@ var i18n = {
         infoNotice: 'Администрация отеля не несет ответственности за организацию и время трансферов агентств.',
         infoFarewell: '✦ Желаем вам приятного путешествия и надеемся на новую встречу! ✦',
         refresh: 'Обновить',
+        mainSearchPlaceholder: 'Поиск: Имя, Ваучер или Агентство...',
         loadingList: 'Загрузка актуальных списков...',
         emptyList: 'На данный момент активных списков на выезд нет.',
+        noSearchResult: 'По вашему запросу списков не найдено.',
         close: 'Закрыть', download: 'Скачать', loadingDoc: 'Открытие документа...',
         searchPlaceholder: 'Поиск по ваучеру...', foundPage: 'Стр.', notFound: 'Нет',
         connectionError: 'Ошибка подключения. Пожалуйста, нажмите Обновить.'
@@ -204,6 +229,8 @@ var i18n = {
 
 var currentLang = 'tr';
 var allFiles = [];
+var filteredFiles = [];
+var searchQuery = '';
 var isLoading = false;
 var currentFileIndex = -1;
 var currentZoom = 1.0;
@@ -226,6 +253,7 @@ function changeLang(lang) {
     document.getElementById('info-notice').innerText = t.infoNotice;
     document.getElementById('info-farewell').innerText = t.infoFarewell;
     document.getElementById('btn-refresh-text').innerText = t.refresh;
+    document.getElementById('main-search-input').placeholder = t.mainSearchPlaceholder;
     document.getElementById('modal-close-text').innerText = t.close;
     document.getElementById('modal-download-text').innerText = t.download;
     document.getElementById('modal-loading-text').innerText = t.loadingDoc;
@@ -236,7 +264,33 @@ function changeLang(lang) {
         if (el) el.innerText = t.loadingList;
         return;
     }
-    if (allFiles.length === 0) renderFiles();
+    if (filteredFiles.length === 0) renderFiles();
+}
+
+function onMainSearch(val) {
+    searchQuery = (val || '').trim().toLowerCase();
+    var clearBtn = document.getElementById('main-search-clear');
+    if (searchQuery.length > 0) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+
+    applyFilterAndRender();
+}
+
+function clearMainSearch() {
+    document.getElementById('main-search-input').value = '';
+    onMainSearch('');
+}
+
+function applyFilterAndRender() {
+    if (!searchQuery) {
+        filteredFiles = allFiles.slice();
+    } else {
+        filteredFiles = allFiles.filter(function(f) {
+            var haystack = (f.searchText || f.title || '').toLowerCase();
+            return haystack.indexOf(searchQuery) !== -1;
+        });
+    }
+    renderFiles();
 }
 
 function fetchFiles(forceRefresh) {
@@ -261,7 +315,7 @@ function fetchFiles(forceRefresh) {
             var data = JSON.parse(raw);
             if (data.status === 'ok') {
                 allFiles = data.files || [];
-                renderFiles();
+                applyFilterAndRender();
             } else {
                 container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + i18n[currentLang].connectionError + '</div>';
             }
@@ -277,13 +331,13 @@ function renderFiles() {
     var container = document.getElementById('files-container');
     var t = i18n[currentLang];
 
-    if (allFiles.length === 0) {
-        container.innerHTML = '<div class="text-center py-10 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200"><i class="fa-regular fa-folder-open text-2xl text-gray-300 mb-2 block"></i><p class="text-xs text-gray-500 font-medium">' + t.emptyList + '</p></div>';
+    if (filteredFiles.length === 0) {
+        var msg = (allFiles.length > 0 && searchQuery) ? t.noSearchResult : t.emptyList;
+        container.innerHTML = '<div class="text-center py-10 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200"><i class="fa-regular fa-folder-open text-2xl text-gray-300 mb-2 block"></i><p class="text-xs text-gray-500 font-medium">' + msg + '</p></div>';
         return;
     }
 
-    // 2 Sütunlu, Sadece Belge Önizleme Görseli İçeren Izgara
-    var cardsHtml = allFiles.map(function(file, idx) {
+    var cardsHtml = filteredFiles.map(function(file, idx) {
         var thumbUrl = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.id) + '&sz=w500';
         return '<div onclick="openPreviewByIndex(' + idx + ')" class="thumb-card">' +
             '<img src="' + thumbUrl + '" alt="" loading="lazy" class="thumb-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
@@ -295,9 +349,9 @@ function renderFiles() {
 }
 
 function openPreviewByIndex(index) {
-    if (index < 0 || index >= allFiles.length) return;
+    if (index < 0 || index >= filteredFiles.length) return;
     currentFileIndex = index;
-    var meta = allFiles[index];
+    var meta = filteredFiles[index];
     var t = i18n[currentLang];
 
     var modal = document.getElementById('preview-modal');
@@ -305,10 +359,10 @@ function openPreviewByIndex(index) {
     var wrapper = document.getElementById('preview-pages-wrapper');
     var searchBox = document.getElementById('pdf-search-box');
 
-    document.getElementById('modal-counter').innerText = (index + 1) + ' / ' + allFiles.length;
+    document.getElementById('modal-counter').innerText = (index + 1) + ' / ' + filteredFiles.length;
     document.getElementById('btn-prev-file').disabled = (index === 0);
-    document.getElementById('btn-next-file').disabled = (index === allFiles.length - 1);
-    document.getElementById('voucher-input').value = '';
+    document.getElementById('btn-next-file').disabled = (index === filteredFiles.length - 1);
+    document.getElementById('voucher-input').value = searchQuery || '';
     document.getElementById('search-match-info').innerText = '';
 
     wrapper.innerHTML = '';
@@ -320,7 +374,7 @@ function openPreviewByIndex(index) {
     pdfPageTexts = [];
 
     var handlePayload = function(filePayload) {
-        if (currentFileIndex !== index) return; // Kullanıcı hızlıca başka dosyaya geçtiyse eski çizimi iptal et
+        if (currentFileIndex !== index) return;
         activeFileData = { mimeType: filePayload.mimeType, base64: filePayload.base64, cleanTitle: meta.title };
         var isImg = (filePayload.mimeType && filePayload.mimeType.indexOf('image') !== -1);
         loader.style.display = 'none';
@@ -358,12 +412,11 @@ function openPreviewByIndex(index) {
 
 function navigatePreview(step) {
     var nextIndex = currentFileIndex + step;
-    if (nextIndex >= 0 && nextIndex < allFiles.length) {
+    if (nextIndex >= 0 && nextIndex < filteredFiles.length) {
         openPreviewByIndex(nextIndex);
     }
 }
 
-// Dokunmatik Sağa / Sola Kaydırma (Swipe) Algılayıcı
 (function initSwipe() {
     var viewport = document.getElementById('preview-viewport');
     var startX = 0, startY = 0;
@@ -381,8 +434,8 @@ function navigatePreview(step) {
         var diffY = e.changedTouches[0].clientY - startY;
 
         if (Math.abs(diffX) > 65 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
-            if (diffX < 0) navigatePreview(1);  // Sola kaydır -> Sonraki
-            else navigatePreview(-1);           // Sağa kaydır -> Önceki
+            if (diffX < 0) navigatePreview(1);
+            else navigatePreview(-1);
         }
     }, { passive: true });
 })();
@@ -412,6 +465,11 @@ async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
             var txt = tc.items.map(function(it) { return it.str; }).join(' ').toLowerCase();
             pdfPageTexts.push({ pageNum: pageNum, text: txt, canvas: canvas });
         } catch (e) {}
+    }
+
+    // Ana ekranda arama yapıldıysa belge açılınca ilgili sayfaya otomatik odaklan
+    if (searchQuery && currentFileIndex === expectedIndex) {
+        searchInPdf(searchQuery);
     }
 }
 
