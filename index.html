@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Crystal Sunset - Departure List</title>
     
-    <!-- Tarayıcı Sekmesi ve Ana Ekran (App) İkon Ayarları -->
     <link rel="icon" type="image/png" href="crystallogo.png">
     <link rel="apple-touch-icon" href="crystallogo.png">
     <meta name="apple-mobile-web-app-title" content="Crystal Sunset">
@@ -28,26 +27,29 @@
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* Açılış Ekranı (QR Info Standartlarında) */
+        /* Açılış Ekranı (Otomatik Kapanma Korumalı) */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
-            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+            animation: splashAutoHide 0.4s ease-out 1.6s forwards;
+        }
+        @keyframes splashAutoHide {
+            to { opacity: 0; visibility: hidden; pointer-events: none; }
         }
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(73, 186, 213, 0.3); border-radius: 50%; border-top-color: #49bad5; animation: spin 1s ease-in-out infinite; margin-top: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Ana Uygulama Çerçevesi */
         .app-container {
             max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100dvh;
             display: flex; flex-direction: column; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.04);
-            opacity: 0; animation: fadeInApp 0.5s forwards 0.2s;
+            opacity: 0; animation: fadeInApp 0.4s forwards 0.15s;
         }
         @keyframes fadeInApp { to { opacity: 1; } }
 
         .dashed-border-y { border-top: 1px dashed #e5e7eb; border-bottom: 1px dashed #e5e7eb; }
         .dashed-border-t { border-top: 1px dashed #e5e7eb; }
 
-        /* Crystal Özel Panel ve Butonlar */
         .crystal-panel {
             background-color: #49bad5; border-radius: 12px; padding: 14px 16px; color: #ffffff;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5), 0 4px 10px rgba(73, 186, 213, 0.2);
@@ -58,16 +60,12 @@
         }
         .crystal-btn:active { transform: scale(0.97); }
 
-        /* Dil Seçim Butonları */
         .lang-btn {
             padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
             font-size: 9px; font-weight: 700; color: #374151; transition: all 0.15s ease;
         }
-        .lang-btn.active {
-            background-color: #e0f2fe; border-color: #49bad5; color: #0369a1;
-        }
+        .lang-btn.active { background-color: #e0f2fe; border-color: #49bad5; color: #0369a1; }
 
-        /* Acente Filtre Çipleri */
         .agency-chip {
             padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap;
             border: 1px solid #e5e7eb; background: #ffffff; color: #4b5563; transition: all 0.2s ease; cursor: pointer;
@@ -76,7 +74,6 @@
             background: #49bad5; color: #ffffff; border-color: #3ca5be; box-shadow: 0 2px 8px rgba(73, 186, 213, 0.3);
         }
 
-        /* Liste Kartları (Activity Box Standartlarında) */
         .file-card {
             background: linear-gradient(145deg, #ffffff, #fdfdfd); border: 1px solid #eaeaea; border-left: 3px solid #49bad5;
             border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
@@ -84,7 +81,6 @@
         }
         .file-card:active { transform: scale(0.985); background: #f4fbff; }
 
-        /* Yanıp Sönen Yeni Rozeti */
         .now-badge {
             font-size: 8px; color: #00a2df; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
             letter-spacing: 0.8px; border: 1px solid rgba(0, 162, 223, 0.3); padding: 2px 7px; border-radius: 12px;
@@ -96,7 +92,6 @@
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Özel Sayfa İçi PDF / Görsel Önizleme Modalı */
         #preview-modal {
             position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.92); z-index: 5000;
             display: none; flex-direction: column; backdrop-filter: blur(4px);
@@ -110,23 +105,17 @@
             background: white; border-radius: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.35);
             margin-bottom: 14px; display: block; height: auto !important;
         }
-        .page-highlight {
-            outline: 3px solid #49bad5; box-shadow: 0 0 20px rgba(73, 186, 213, 0.8);
-        }
+        .page-highlight { outline: 3px solid #49bad5; box-shadow: 0 0 20px rgba(73, 186, 213, 0.8); }
     </style>
 </head>
 <body>
 
-<!-- AÇILIŞ EKRANI -->
 <div id="splash-screen">
     <img src="crystallogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-[140px] object-contain">
     <div class="spinner"></div>
 </div>
 
-<!-- ANA EKRAN -->
 <div class="app-container">
-    
-    <!-- Üst Bar: Yenile ve 4 Dil Seçeneği -->
     <div class="flex justify-between items-center px-5 pt-3.5 shrink-0">
         <button onclick="fetchFiles(true)" class="text-gray-500 hover:text-sky-600 transition flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm active:scale-95">
             <i id="refresh-icon" class="fa-solid fa-rotate-right text-[10px] mr-1.5 text-[#49bad5]"></i>
@@ -141,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Üst Başlık & Alt Başlık -->
     <div class="text-center px-5 mt-4 shrink-0">
         <h1 class="font-['Cinzel'] font-bold text-2xl tracking-[4px] text-[#1e293b]">
             CRYSTAL SUNSET
@@ -151,7 +139,6 @@
         </p>
     </div>
 
-    <!-- 4 Dilli Bilgilendirme ve Sorumluluk Metni -->
     <div class="px-5 mt-3.5 shrink-0">
         <div class="crystal-panel text-[11.5px] leading-relaxed text-left">
             <div class="flex items-start gap-2.5">
@@ -161,33 +148,26 @@
         </div>
     </div>
 
-    <!-- Acente Filtre Barı -->
     <div class="dashed-border-y py-2.5 mt-3.5 px-5 shrink-0 bg-gray-50/50">
-        <div id="agency-filters" class="flex space-x-1.5 overflow-x-auto hide-scroll">
-            <!-- JS ile dinamik oluşturulur -->
-        </div>
+        <div id="agency-filters" class="flex space-x-1.5 overflow-x-auto hide-scroll"></div>
     </div>
 
-    <!-- Dosya Listesi Alanı -->
     <div class="px-5 py-3.5 flex-grow">
         <div id="files-container" class="space-y-2.5">
-            <!-- Yükleniyor İskeleti -->
             <div class="text-center py-10 text-gray-400 text-xs font-medium">
                 <div class="spinner mx-auto mb-3" style="width:28px; height:28px; border-width:2px;"></div>
-                <span id="loading-list-text">Listeler yükleniyor...</span>
+                <span id="loading-list-text">Güncel listeler kontrol ediliyor...</span>
             </div>
         </div>
     </div>
 
-    <!-- Alt Logo (Footer) -->
     <div class="dashed-border-t py-3 mt-auto flex justify-center items-center bg-white shrink-0">
         <img src="mainlogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-6 object-contain opacity-85">
     </div>
 </div>
 
-<!-- ÖZEL ÖNİZLEME EKRANI (SIFIR GOOGLE DRIVE ARAYÜZÜ) -->
+<!-- ÖZEL ÖNİZLEME MODALI -->
 <div id="preview-modal">
-    <!-- Üst Kontrol Çubuğu -->
     <div class="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between shadow-sm shrink-0">
         <button onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
             <i class="fa-solid fa-arrow-left mr-1.5 text-[#49bad5]"></i>
@@ -205,16 +185,13 @@
         </button>
     </div>
 
-    <!-- Yakınlaştırma ve Voucher Arama Çubuğu -->
     <div class="bg-slate-800 text-white px-3 py-2 flex items-center justify-between gap-2 text-xs border-b border-slate-700 shrink-0">
-        <!-- Voucher No Arama (PDF Metin Katmanı İçin) -->
         <div id="pdf-search-box" class="flex items-center bg-slate-700/80 rounded-lg px-2.5 py-1 flex-1 max-w-[230px] border border-slate-600">
             <i class="fa-solid fa-magnifying-glass text-sky-400 text-[11px] mr-2"></i>
             <input id="voucher-input" type="text" oninput="searchInPdf(this.value)" placeholder="Voucher / İsim Ara..." class="bg-transparent text-white placeholder-slate-400 text-[11px] w-full focus:outline-none">
             <span id="search-match-info" class="text-[9px] text-sky-300 font-bold ml-1 whitespace-nowrap"></span>
         </div>
 
-        <!-- Zoom Butonları -->
         <div class="flex items-center space-x-1.5 shrink-0 ml-auto">
             <button onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 hover:bg-slate-600 flex items-center justify-center font-bold text-sm active:scale-95">
                 <i class="fa-solid fa-minus text-[10px]"></i>
@@ -228,7 +205,6 @@
         </div>
     </div>
 
-    <!-- Dosya Çizim Alanı -->
     <div id="preview-viewport">
         <div id="preview-loader" class="my-auto text-center text-white">
             <div class="spinner mx-auto mb-3" style="border-top-color:#ffffff;"></div>
@@ -239,94 +215,51 @@
 </div>
 
 <script>
-    // =========================================================================
-    // ÖNEMLİ: Google Apps Script "Web Uygulaması URL"nizi buraya yapıştırın:
-    // =========================================================================
     const SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbyXu3oYpx-PFrkZ2uwm8shu1tB3aMOYadBwLeRMAgkyAv9bFHjL-DH9r2BnU2KCL9_l/exec";
 
-    // PDF.js Worker Ayarı
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    // 4 Dilli Metin Sözlüğü
     const i18n = {
         tr: {
             disclaimer: "Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir, transfer voucher numarası üzerinden kontrol sağlayınız. Acente transferleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır. Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle.",
-            refresh: "Yenile",
-            allAgencies: "TÜMÜ",
-            otherAgency: "DİĞER",
+            refresh: "Yenile", allAgencies: "TÜMÜ", otherAgency: "DİĞER",
             loadingList: "Güncel listeler kontrol ediliyor...",
             emptyList: "Şu an için yüklenmiş aktif bir çıkış listesi bulunmamaktadır.",
             emptyAgency: "Seçili acenteye ait güncel bir liste henüz yüklenmemiştir.",
-            uploadedAt: "Yüklenme:",
-            newBadge: "YENİ",
-            viewBtn: "Görüntüle",
-            close: "Kapat",
-            download: "İndir",
-            loadingDoc: "Belge açılıyor...",
-            searchPlaceholder: "Voucher No / İsim ara...",
-            foundPage: "Sayfa",
-            notFound: "Yok",
-            apiNotConfigured: "Lütfen index.html içindeki SCRIPT_API_URL alanına Apps Script Web Uygulaması bağlantınızı yapıştırın.",
-            connectionError: "Listeler alınırken bağlantı hatası oluştu. Lütfen tekrar deneyin."
+            uploadedAt: "Yüklenme:", newBadge: "YENİ", viewBtn: "Görüntüle",
+            close: "Kapat", download: "İndir", loadingDoc: "Belge açılıyor...",
+            searchPlaceholder: "Voucher No / İsim ara...", foundPage: "Sayfa", notFound: "Yok",
+            connectionError: "Bağlantı kurulamadı. Apps Script dağıtımında 'Erişimi olanlar: Herkes' seçili olduğundan ve kodun kaydedildiğinden (Ctrl+S) emin olun."
         },
         en: {
             disclaimer: "The departure information sent to us by travel agencies is listed below; please check using your transfer voucher number. Our establishment holds no responsibility regarding agency transfers. We wish you a pleasant journey and hope to welcome you again.",
-            refresh: "Refresh",
-            allAgencies: "ALL",
-            otherAgency: "OTHER",
+            refresh: "Refresh", allAgencies: "ALL", otherAgency: "OTHER",
             loadingList: "Checking latest departure lists...",
             emptyList: "There are currently no active departure lists available.",
             emptyAgency: "No departure list has been uploaded for the selected agency yet.",
-            uploadedAt: "Uploaded:",
-            newBadge: "NEW",
-            viewBtn: "Preview",
-            close: "Close",
-            download: "Download",
-            loadingDoc: "Opening document...",
-            searchPlaceholder: "Search Voucher No...",
-            foundPage: "Page",
-            notFound: "0",
-            apiNotConfigured: "Please configure SCRIPT_API_URL inside index.html.",
+            uploadedAt: "Uploaded:", newBadge: "NEW", viewBtn: "Preview",
+            close: "Close", download: "Download", loadingDoc: "Opening document...",
+            searchPlaceholder: "Search Voucher No...", foundPage: "Page", notFound: "0",
             connectionError: "Connection error while loading lists. Please tap Refresh."
         },
         de: {
             disclaimer: "Die uns von den Reiseagenturen zugesandten Abreiseinformationen sind unten aufgeführt; bitte überprüfen Sie diese anhand Ihrer Transfer-Vouchernummer. Für Agenturtransfers übernimmt unser Haus keinerlei Verantwortung. Wir wünschen Ihnen eine angenehme Reise und freuen uns auf ein Wiedersehen.",
-            refresh: "Aktualisieren",
-            allAgencies: "ALLE",
-            otherAgency: "SONSTIGE",
+            refresh: "Aktualisieren", allAgencies: "ALLE", otherAgency: "SONSTIGE",
             loadingList: "Aktuelle Abreiselisten werden geladen...",
             emptyList: "Derzeit sind keine aktiven Abreiselisten vorhanden.",
             emptyAgency: "Für diesen Reiseveranstalter wurde noch keine aktuelle Liste hochgeladen.",
-            uploadedAt: "Hochgeladen:",
-            newBadge: "NEU",
-            viewBtn: "Ansehen",
-            close: "Schließen",
-            download: "laden",
-            loadingDoc: "Dokument wird geöffnet...",
-            searchPlaceholder: "Vouchernr. suchen...",
-            foundPage: "Seite",
-            notFound: "0",
-            apiNotConfigured: "Bitte SCRIPT_API_URL in index.html eintragen.",
+            uploadedAt: "Hochgeladen:", newBadge: "NEU", viewBtn: "Ansehen",
+            close: "Schließen", download: "Laden", loadingDoc: "Dokument wird geöffnet...",
+            searchPlaceholder: "Vouchernr. suchen...", foundPage: "Seite", notFound: "0",
             connectionError: "Verbindungsfehler beim Laden. Bitte erneut versuchen."
         },
         ru: {
             disclaimer: "Ниже представлена информация о выезде, отправленная нам туристическими агентствами; пожалуйста, проверьте данные по номеру вашего трансферного ваучера. Администрация отеля не несет никакой ответственности за трансферы агентств. Желаем вам приятного путешествия и надеемся на новую встречу!",
-            refresh: "Обновить",
-            allAgencies: "ВСЕ",
-            otherAgency: "ДРУГИЕ",
+            refresh: "Обновить", allAgencies: "ВСЕ", otherAgency: "ДРУГИЕ",
             loadingList: "Загрузка актуальных списков...",
             emptyList: "На данный момент активных списков на выезд нет.",
             emptyAgency: "Для выбранного агентства список еще не загружен.",
-            uploadedAt: "Загружено:",
-            newBadge: "НОВОЕ",
-            viewBtn: "Открыть",
-            close: "Закрыть",
-            download: "Скачать",
-            loadingDoc: "Открытие документа...",
-            searchPlaceholder: "Поиск по ваучеру...",
-            foundPage: "Стр.",
-            notFound: "Нет",
-            apiNotConfigured: "Укажите SCRIPT_API_URL в файле index.html.",
+            uploadedAt: "Загружено:", newBadge: "НОВОЕ", viewBtn: "Открыть",
+            close: "Закрыть", download: "Скачать", loadingDoc: "Открытие документа...",
+            searchPlaceholder: "Поиск по ваучеру...", foundPage: "Стр.", notFound: "Нет",
             connectionError: "Ошибка подключения. Пожалуйста, нажмите Обновить."
         }
     };
@@ -335,32 +268,36 @@
     let allFiles = [];
     let selectedAgency = 'ALL';
     let currentZoom = 1.0;
-    let activeFileData = null; // İndirme işlemi için aktif dosya
-    let pdfPageTexts = [];     // PDF içi voucher araması için metin önbelleği
-    const fileMemoryCache = {}; // Açılan dosyaları hafızada tutar (0ms tekrar açılış)
+    let activeFileData = null;
+    let pdfPageTexts = [];
+    const fileMemoryCache = {};
 
-    // Başlangıçta dil algıla ve listeleri çek
-    window.addEventListener('load', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const paramLang = urlParams.get('lang');
-        const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
-
-        if (paramLang && i18n[paramLang]) {
-            currentLang = paramLang;
-        } else if (i18n[browserLang]) {
-            currentLang = browserLang;
-        } else {
-            currentLang = 'en';
-        }
-
-        changeLang(currentLang);
-        fetchFiles(false);
-
-        setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
+    function hideSplash() {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
             splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 500);
-        }, 450);
+            setTimeout(() => { splash.style.display = 'none'; }, 400);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramLang = urlParams.get('lang');
+            const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
+
+            if (paramLang && i18n[paramLang]) currentLang = paramLang;
+            else if (i18n[browserLang]) currentLang = browserLang;
+            else currentLang = 'en';
+
+            changeLang(currentLang);
+            fetchFiles(false);
+        } finally {
+            setTimeout(hideSplash, 450);
+        }
     });
 
     function changeLang(lang) {
@@ -369,7 +306,8 @@
         const t = i18n[lang];
 
         ['tr', 'en', 'de', 'ru'].forEach(l => {
-            document.getElementById('lang-' + l).classList.toggle('active', l === lang);
+            const btn = document.getElementById('lang-' + l);
+            if (btn) btn.classList.toggle('active', l === lang);
         });
 
         document.getElementById('disclaimer-text').innerText = t.disclaimer;
@@ -390,12 +328,6 @@
         const refreshIcon = document.getElementById('refresh-icon');
         const t = i18n[currentLang];
 
-        if (!SCRIPT_API_URL || SCRIPT_API_URL.indexOf("http") !== 0) {
-            container.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-xs font-medium text-center">${t.apiNotConfigured}</div>`;
-            renderAgencyFilters();
-            return;
-        }
-
         refreshIcon.classList.add('fa-spin');
         if (allFiles.length === 0) {
             container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs font-medium">
@@ -406,18 +338,29 @@
 
         try {
             const url = SCRIPT_API_URL + "?action=list" + (forceRefresh ? "&nocache=1&t=" + Date.now() : "");
-            const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-            const data = await res.json();
+            const res = await fetch(url, { method: 'GET', redirect: 'follow', credentials: 'omit' });
+            const rawText = await res.text();
+
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (parseErr) {
+                if (rawText.indexOf("doGet") !== -1) {
+                    throw new Error("Apps Script'te kodu Ctrl+S ile kaydedip 'Dağıtımları yönet > Kalem > Yeni sürüm' olarak güncelleyin (doGet henüz yayında değil).");
+                }
+                throw new Error(t.connectionError);
+            }
 
             if (data.status === "ok") {
                 allFiles = data.files || [];
                 renderAgencyFilters();
                 renderFiles();
             } else {
-                throw new Error(data.message || "API Error");
+                throw new Error(data.message || t.connectionError);
             }
         } catch (err) {
-            container.innerHTML = `<div class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-xs font-semibold text-center">${t.connectionError}</div>`;
+            const msg = (err && err.message && err.message.indexOf("Failed to fetch") === -1) ? err.message : t.connectionError;
+            container.innerHTML = `<div class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-xs font-semibold text-center leading-relaxed">${escapeHtml(msg)}</div>`;
         } finally {
             refreshIcon.classList.remove('fa-spin');
         }
@@ -428,7 +371,6 @@
         const t = i18n[currentLang];
         const baseAgencies = ["ANEX", "CORAL", "CORENDON", "DIANA", "PEGAS", "TUI", "DIGER"];
 
-        // Dosya sayılarını hesapla
         const counts = {};
         allFiles.forEach(f => { counts[f.agency] = (counts[f.agency] || 0) + 1; });
 
@@ -438,7 +380,6 @@
 
         baseAgencies.forEach(ag => {
             const count = counts[ag] || 0;
-            // Sadece dosyası olanları veya seçili olanı öne çıkar, diğerlerini de göster
             const label = (ag === "DIGER") ? t.otherAgency : ag;
             html += `<button onclick="selectAgency('${ag}')" class="agency-chip ${selectedAgency === ag ? 'active' : ''} ${count === 0 ? 'opacity-55' : ''}">
                         ${label}${count > 0 ? ' (' + count + ')' : ''}
@@ -458,13 +399,12 @@
         const container = document.getElementById('files-container');
         const t = i18n[currentLang];
 
-        if (!SCRIPT_API_URL || SCRIPT_API_URL.indexOf("http") !== 0) return;
-
         const filtered = selectedAgency === 'ALL'
             ? allFiles
             : allFiles.filter(f => f.agency === selectedAgency);
 
         if (filtered.length === 0) {
+            if (allFiles.length === 0 && container.querySelector('.bg-red-50')) return;
             const msg = allFiles.length === 0 ? t.emptyList : t.emptyAgency;
             container.innerHTML = `
                 <div class="text-center py-10 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -510,9 +450,6 @@
         }).join('');
     }
 
-    // =========================================================================
-    // ÖZEL ÖNİZLEME MOTORU (PDF.js + Görsel Destekli + Voucher Arama)
-    // =========================================================================
     async function openPreview(fileId) {
         const meta = allFiles.find(f => f.id === fileId);
         if (!meta) return;
@@ -539,7 +476,7 @@
         try {
             let filePayload = fileMemoryCache[fileId];
             if (!filePayload) {
-                const res = await fetch(`${SCRIPT_API_URL}?action=file&id=${encodeURIComponent(fileId)}`, { method: 'GET', redirect: 'follow' });
+                const res = await fetch(`${SCRIPT_API_URL}?action=file&id=${encodeURIComponent(fileId)}`, { method: 'GET', redirect: 'follow', credentials: 'omit' });
                 const data = await res.json();
                 if (data.status !== "ok") throw new Error(data.message || "File error");
                 filePayload = data;
@@ -569,17 +506,17 @@
     }
 
     async function renderPdfFromBase64(base64, wrapper) {
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
         const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
-            // iOS Safari bellek sınırını aşmadan Retina netliğinde çizim (scale: 2.0)
             const viewport = page.getViewport({ scale: 2.0 });
 
             const canvas = document.createElement('canvas');
@@ -590,11 +527,8 @@
             canvas.style.width = (currentZoom * 100) + '%';
 
             wrapper.appendChild(canvas);
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
 
-            const ctx = canvas.getContext('2d');
-            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-            // Voucher numarası araması için sayfa metnini kaydet
             try {
                 const textContent = await page.getTextContent();
                 const joinedText = textContent.items.map(item => item.str).join(' ').toLowerCase();
@@ -642,8 +576,7 @@
             el.style.width = (currentZoom * 100) + '%';
             el.style.maxWidth = 'none';
         });
-        const wrapper = document.getElementById('preview-pages-wrapper');
-        wrapper.style.alignItems = currentZoom > 1.0 ? 'flex-start' : 'center';
+        document.getElementById('preview-pages-wrapper').style.alignItems = currentZoom > 1.0 ? 'flex-start' : 'center';
     }
 
     function updateZoomLabel() {
