@@ -50,8 +50,27 @@
         #preview-modal { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.94); z-index: 5000; display: none; flex-direction: column; }
         #preview-modal.open { display: flex; }
         #preview-viewport { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 12px; display: flex; flex-direction: column; align-items: center; touch-action: pan-y pinch-zoom; }
-        .pdf-page-canvas { background: white; border-radius: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.35); margin-bottom: 14px; display: block; height: auto !important; }
-        .page-highlight { outline: 3px solid #49bad5; box-shadow: 0 0 20px rgba(73, 186, 213, 0.8); }
+
+        /* PDF Sayfa Çerçevesi ve Fosforlu Kelime Vurgusu */
+        .pdf-page-container {
+            position: relative; isolation: isolate; background: #ffffff; border-radius: 6px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.35); margin-bottom: 14px; overflow: hidden; width: 100%;
+        }
+        .pdf-page-canvas { display: block; width: 100% !important; height: auto !important; }
+        .pdf-highlight-layer { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; }
+        .pdf-highlight-mark {
+            position: absolute;
+            background-color: #fde047;
+            border-bottom: 2px solid #ea580c;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.95);
+            transform-origin: center;
+            animation: pulseHighlight 1.3s ease-in-out infinite;
+        }
+        @keyframes pulseHighlight {
+            0%, 100% { background-color: #fde047; transform: scale(1); }
+            50% { background-color: #facc15; transform: scale(1.06); }
+        }
     </style>
 </head>
 <body>
@@ -157,10 +176,13 @@
     </div>
 
     <div class="bg-slate-800 text-white px-3 py-2 flex items-center justify-between gap-2 text-xs border-b border-slate-700 shrink-0">
-        <div id="pdf-search-box" class="flex items-center bg-slate-700/80 rounded-lg px-2.5 py-1 flex-1 max-w-[230px] border border-slate-600">
-            <i class="fa-solid fa-magnifying-glass text-sky-400 text-[11px] mr-2"></i>
+        <div id="pdf-search-box" class="flex items-center bg-slate-700/80 rounded-lg px-2.5 py-1 flex-1 max-w-[240px] border border-slate-600">
+            <i class="fa-solid fa-magnifying-glass text-amber-300 text-[11px] mr-2"></i>
             <input id="voucher-input" type="text" oninput="searchInPdf(this.value)" placeholder="Voucher No / İsim ara..." class="bg-transparent text-white placeholder-slate-400 text-[11px] w-full focus:outline-none">
-            <span id="search-match-info" class="text-[9px] text-sky-300 font-bold ml-1 whitespace-nowrap"></span>
+            <span id="search-match-info" class="text-[9px] text-amber-300 font-bold ml-1 whitespace-nowrap"></span>
+            <button type="button" id="pdf-search-clear" onclick="clearPdfSearch()" class="hidden ml-1.5 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-circle-xmark text-xs"></i>
+            </button>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0 ml-auto">
             <button type="button" onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 hover:bg-slate-600 flex items-center justify-center active:scale-95"><i class="fa-solid fa-minus text-[10px]"></i></button>
@@ -246,10 +268,9 @@ var hasError = false;
 var currentFileIndex = -1;
 var currentZoom = 1.0;
 var activeFileData = null;
-var pdfPageTexts = [];
+var pdfPageData = [];
 var fileMemoryCache = {};
 
-// Türkçe/İngilizce İ-I-ı-i ve Unicode nokta farklarını tamamen eşitler
 function normalizeText(str) {
     return String(str || '')
         .replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i')
@@ -257,6 +278,12 @@ function normalizeText(str) {
         .replace(/\u0307/g, '')
         .replace(/\s+/g, ' ')
         .trim();
+}
+
+function normSingleChar(ch) {
+    if (/\s/.test(ch)) return ' ';
+    if (ch === 'İ' || ch === 'I' || ch === 'ı') return 'i';
+    return ch.toLowerCase().charAt(0);
 }
 
 function changeLang(lang) {
@@ -309,6 +336,11 @@ function onMainSearch(val) {
 function clearMainSearch() {
     document.getElementById('main-search-input').value = '';
     onMainSearch('');
+}
+
+function clearPdfSearch() {
+    document.getElementById('voucher-input').value = '';
+    searchInPdf('');
 }
 
 function applyFilterAndRender() {
@@ -391,7 +423,6 @@ function renderFiles() {
     container.innerHTML = '<div class="grid grid-cols-2 gap-3">' + cardsHtml + '</div>';
 }
 
-// Açık belgenin yanındaki belgeleri sessizce hafızaya hazırlar (hızlı kaydırma için)
 function preloadFile(index) {
     if (index < 0 || index >= filteredFiles.length) return;
     var f = filteredFiles[index];
@@ -414,12 +445,15 @@ function openPreviewByIndex(index) {
     var loader = document.getElementById('preview-loader');
     var wrapper = document.getElementById('preview-pages-wrapper');
     var searchBox = document.getElementById('pdf-search-box');
+    var pdfClearBtn = document.getElementById('pdf-search-clear');
 
     document.getElementById('modal-counter').innerText = (index + 1) + ' / ' + filteredFiles.length;
     document.getElementById('btn-prev-file').disabled = (index === 0);
     document.getElementById('btn-next-file').disabled = (index === filteredFiles.length - 1);
     document.getElementById('voucher-input').value = rawSearchQuery || '';
     document.getElementById('search-match-info').innerText = '';
+    if (rawSearchQuery) pdfClearBtn.classList.remove('hidden');
+    else pdfClearBtn.classList.add('hidden');
 
     wrapper.innerHTML = '';
     loader.style.display = 'block';
@@ -427,7 +461,7 @@ function openPreviewByIndex(index) {
     document.body.style.overflow = 'hidden';
     currentZoom = 1.0;
     document.getElementById('zoom-level-label').innerText = '100%';
-    pdfPageTexts = [];
+    pdfPageData = [];
 
     var handlePayload = function(filePayload) {
         if (currentFileIndex !== index) return;
@@ -436,11 +470,14 @@ function openPreviewByIndex(index) {
         loader.style.display = 'none';
         if (isImg) {
             searchBox.classList.add('hidden');
+            var pageContainer = document.createElement('div');
+            pageContainer.className = 'pdf-page-container';
+            pageContainer.style.width = (currentZoom * 100) + '%';
             var img = document.createElement('img');
             img.src = 'data:' + (filePayload.mimeType || 'image/jpeg') + ';base64,' + filePayload.base64;
-            img.className = 'pdf-page-canvas w-full';
-            img.style.width = '100%';
-            wrapper.appendChild(img);
+            img.className = 'pdf-page-canvas';
+            pageContainer.appendChild(img);
+            wrapper.appendChild(pageContainer);
         } else {
             searchBox.classList.remove('hidden');
             renderPdfFromBase64(filePayload.base64, wrapper, index);
@@ -475,7 +512,6 @@ function navigatePreview(step) {
     }
 }
 
-// Mobil Sağa-Sola Kaydırma ve Masaüstü Klavye Yön Tuşları Desteği
 (function initNavigationEvents() {
     var viewport = document.getElementById('preview-viewport');
     var startX = 0, startY = 0;
@@ -507,30 +543,95 @@ function navigatePreview(step) {
     });
 })();
 
+function buildPageSearchIndex(items) {
+    var fullStr = '';
+    var charRefs = [];
+    var prevEndX = null;
+    var prevY = null;
+
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var raw = String(item.str || '').replace(/\u0307/g, '');
+        if (!raw) continue;
+
+        var tr = item.transform || [10, 0, 0, 10, 0, 0];
+        var tx = tr[4];
+        var ty = tr[5];
+        var fontH = item.height || Math.hypot(tr[2], tr[3]) || Math.abs(tr[0]) || 10;
+        var itemW = item.width || 0;
+
+        if (fullStr.length > 0 && fullStr.charAt(fullStr.length - 1) !== ' ') {
+            var sameLine = (prevY !== null) && (Math.abs(ty - prevY) < fontH * 0.5);
+            var gap = (prevEndX !== null) ? (tx - prevEndX) : 999;
+            if (!sameLine || gap > fontH * 0.22 || gap < -fontH * 0.5) {
+                fullStr += ' ';
+                charRefs.push(null);
+            }
+        }
+
+        for (var c = 0; c < raw.length; c++) {
+            var normCh = normSingleChar(raw.charAt(c));
+            if (normCh === ' ' && (fullStr.length === 0 || fullStr.charAt(fullStr.length - 1) === ' ')) {
+                continue;
+            }
+            fullStr += normCh;
+            charRefs.push({ itemIdx: i, cIdx: c, len: raw.length });
+        }
+
+        prevEndX = tx + itemW;
+        prevY = ty;
+        if (item.hasEOL && fullStr.length > 0 && fullStr.charAt(fullStr.length - 1) !== ' ') {
+            fullStr += ' ';
+            charRefs.push(null);
+            prevEndX = null;
+            prevY = null;
+        }
+    }
+
+    return { fullStr: fullStr, charRefs: charRefs };
+}
+
 async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
     if (window.pdfjsLib) {
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
-    var binary = atob(base64);
-    var bytes = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
+    var bytes = base64ToUint8Array(base64);
     var pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+
     for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         if (currentFileIndex !== expectedIndex) return;
         var page = await pdf.getPage(pageNum);
         var viewport = page.getViewport({ scale: 1.6 });
+
+        var pageContainer = document.createElement('div');
+        pageContainer.className = 'pdf-page-container';
+        pageContainer.style.width = (currentZoom * 100) + '%';
+
         var canvas = document.createElement('canvas');
         canvas.className = 'pdf-page-canvas';
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        canvas.style.width = (currentZoom * 100) + '%';
-        wrapper.appendChild(canvas);
+
+        var highlightLayer = document.createElement('div');
+        highlightLayer.className = 'pdf-highlight-layer';
+
+        pageContainer.appendChild(canvas);
+        pageContainer.appendChild(highlightLayer);
+        wrapper.appendChild(pageContainer);
+
         await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+
         try {
             var tc = await page.getTextContent();
-            var txt = normalizeText(tc.items.map(function(it) { return it.str; }).join(' '));
-            pdfPageTexts.push({ pageNum: pageNum, text: txt, canvas: canvas });
+            var idxData = buildPageSearchIndex(tc.items || []);
+            pdfPageData.push({
+                pageNum: pageNum,
+                viewport: viewport,
+                items: tc.items || [],
+                fullStr: idxData.fullStr,
+                charRefs: idxData.charRefs,
+                highlightLayer: highlightLayer
+            });
         } catch (e) {}
     }
 
@@ -541,15 +642,111 @@ async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
 
 function searchInPdf(query) {
     var infoEl = document.getElementById('search-match-info');
+    var clearBtn = document.getElementById('pdf-search-clear');
     var t = i18n[currentLang];
     var q = normalizeText(query);
-    pdfPageTexts.forEach(function(p) { p.canvas.classList.remove('page-highlight'); });
-    if (q.length < 2 || pdfPageTexts.length === 0) { infoEl.innerText = ''; return; }
-    var matches = pdfPageTexts.filter(function(p) { return p.text.indexOf(q) !== -1; });
-    if (matches.length > 0) {
-        matches.forEach(function(m) { m.canvas.classList.add('page-highlight'); });
-        infoEl.innerText = t.foundPage + ' ' + matches.map(function(m) { return m.pageNum; }).join(',');
-        matches[0].canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (query && query.length > 0) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+
+    pdfPageData.forEach(function(p) {
+        p.highlightLayer.innerHTML = '';
+    });
+
+    if (q.length < 2 || pdfPageData.length === 0) {
+        infoEl.innerText = '';
+        return;
+    }
+
+    var matchedPages = [];
+    var firstMarkEl = null;
+
+    pdfPageData.forEach(function(p) {
+        var pos = p.fullStr.indexOf(q);
+        var pageHasMatch = false;
+        var safetyCount = 0;
+
+        while (pos !== -1 && safetyCount < 80) {
+            safetyCount++;
+            pageHasMatch = true;
+            var matchEnd = pos + q.length;
+
+            // Eşleşen karakterleri ait oldukları PDF metin kutularına göre grupla
+            var segments = [];
+            for (var k = pos; k < matchEnd; k++) {
+                var ref = p.charRefs[k];
+                if (!ref) continue;
+                var lastSeg = segments.length > 0 ? segments[segments.length - 1] : null;
+                if (lastSeg && lastSeg.itemIdx === ref.itemIdx) {
+                    lastSeg.maxC = ref.cIdx;
+                } else {
+                    segments.push({ itemIdx: ref.itemIdx, minC: ref.cIdx, maxC: ref.cIdx, len: ref.len });
+                }
+            }
+
+            segments.forEach(function(seg) {
+                var item = p.items[seg.itemIdx];
+                if (!item) return;
+                var tr = item.transform || [10, 0, 0, 10, 0, 0];
+                var tx = tr[4];
+                var ty = tr[5];
+                var fontH = item.height || Math.hypot(tr[2], tr[3]) || Math.abs(tr[0]) || 10;
+                var itemW = item.width || (seg.len * fontH * 0.55);
+
+                var ratioStart = seg.minC / seg.len;
+                var ratioEnd = (seg.maxC + 1) / seg.len;
+                var pdfX1, pdfY1, pdfX2, pdfY2;
+
+                if (Math.abs(tr[0]) >= Math.abs(tr[1])) {
+                    pdfX1 = tx + itemW * ratioStart;
+                    pdfX2 = tx + itemW * ratioEnd;
+                    pdfY1 = ty - fontH * 0.25;
+                    pdfY2 = ty + fontH * 0.95;
+                } else {
+                    var dir = tr[1] >= 0 ? 1 : -1;
+                    pdfY1 = ty + dir * itemW * ratioStart;
+                    pdfY2 = ty + dir * itemW * ratioEnd;
+                    pdfX1 = tx - fontH * 0.95;
+                    pdfX2 = tx + fontH * 0.25;
+                }
+
+                var vRect = p.viewport.convertToViewportRectangle([pdfX1, pdfY1, pdfX2, pdfY2]);
+                var leftPx = Math.min(vRect[0], vRect[2]);
+                var topPx = Math.min(vRect[1], vRect[3]);
+                var widthPx = Math.abs(vRect[2] - vRect[0]);
+                var heightPx = Math.abs(vRect[3] - vRect[1]);
+
+                var leftPct = Math.max(0, (leftPx - 3) / p.viewport.width * 100);
+                var topPct = Math.max(0, (topPx - 2) / p.viewport.height * 100);
+                var widthPct = Math.min(100 - leftPct, (widthPx + 6) / p.viewport.width * 100);
+                var heightPct = Math.min(100 - topPct, (heightPx + 4) / p.viewport.height * 100);
+
+                var mark = document.createElement('div');
+                mark.className = 'pdf-highlight-mark';
+                mark.style.left = leftPct + '%';
+                mark.style.top = topPct + '%';
+                mark.style.width = widthPct + '%';
+                mark.style.height = heightPct + '%';
+                p.highlightLayer.appendChild(mark);
+
+                if (!firstMarkEl) firstMarkEl = mark;
+            });
+
+            pos = p.fullStr.indexOf(q, pos + 1);
+        }
+
+        if (pageHasMatch) matchedPages.push(p.pageNum);
+    });
+
+    if (matchedPages.length > 0) {
+        infoEl.innerText = t.foundPage + ' ' + matchedPages.join(',');
+        if (firstMarkEl) {
+            var vp = document.getElementById('preview-viewport');
+            var vpRect = vp.getBoundingClientRect();
+            var markRect = firstMarkEl.getBoundingClientRect();
+            var targetTop = vp.scrollTop + (markRect.top - vpRect.top) - (vpRect.height / 2) + (markRect.height / 2);
+            vp.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+        }
     } else {
         infoEl.innerText = t.notFound;
     }
@@ -562,21 +759,66 @@ function adjustZoom(delta) {
 function resetZoom() { currentZoom = 1.0; applyZoom(); }
 function applyZoom() {
     document.getElementById('zoom-level-label').innerText = Math.round(currentZoom * 100) + '%';
-    document.querySelectorAll('#preview-pages-wrapper .pdf-page-canvas').forEach(function(el) {
+    document.querySelectorAll('#preview-pages-wrapper .pdf-page-container').forEach(function(el) {
         el.style.width = (currentZoom * 100) + '%';
         el.style.maxWidth = 'none';
     });
     document.getElementById('preview-pages-wrapper').style.alignItems = currentZoom > 1.0 ? 'flex-start' : 'center';
 }
-function downloadCurrentFile() {
-    if (!activeFileData) return;
-    var link = document.createElement('a');
-    link.href = 'data:' + (activeFileData.mimeType || 'application/pdf') + ';base64,' + activeFileData.base64;
-    link.download = (activeFileData.cleanTitle || 'Departure_List').replace(/\.(doc|docx)$/i, '.pdf');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+function base64ToUint8Array(base64) {
+    var binary = atob(base64);
+    var len = binary.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
 }
+
+// iOS (Safari / Chrome / WebApp) ve Android Tam Uyumlu İndirme Fonksiyonu
+function downloadCurrentFile() {
+    if (!activeFileData || !activeFileData.base64) return;
+
+    var mime = activeFileData.mimeType || 'application/pdf';
+    var cleanName = (activeFileData.cleanTitle || 'Departure_List.pdf')
+        .replace(/^\d+_[A-Z]+_/, '')
+        .replace(/\.(doc|docx)$/i, '.pdf');
+    if (mime === 'application/pdf' && !/\.pdf$/i.test(cleanName)) {
+        cleanName += '.pdf';
+    }
+
+    var bytes = base64ToUint8Array(activeFileData.base64);
+    var blob = new Blob([bytes], { type: mime });
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // iOS cihazlarda yerel "Dosyalara Kaydet / Paylaş" menüsünü aç
+    if (isIOS && typeof File === 'function' && navigator.canShare) {
+        try {
+            var fileObj = new File([blob], cleanName, { type: mime });
+            if (navigator.canShare({ files: [fileObj] })) {
+                navigator.share({ files: [fileObj], title: cleanName }).catch(function() {});
+                return;
+            }
+        } catch (e) {}
+    }
+
+    var blobUrl = URL.createObjectURL(blob);
+    if (isIOS) {
+        var win = window.open(blobUrl, '_blank');
+        if (!win) window.location.href = blobUrl;
+    } else {
+        var link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = cleanName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
+}
+
 function closePreview() {
     document.getElementById('preview-modal').classList.remove('open');
     document.getElementById('preview-pages-wrapper').innerHTML = '';
@@ -585,7 +827,6 @@ function closePreview() {
     activeFileData = null;
 }
 
-// Tarayıcı diline göre başlangıç ve her açılışta taze veri çekimi
 (function init() {
     var urlParams = new URLSearchParams(window.location.search);
     var paramLang = urlParams.get('lang');
