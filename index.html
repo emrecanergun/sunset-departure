@@ -6,6 +6,10 @@
     <title>Crystal Sunset - Departure List</title>
     <link rel="icon" type="image/png" href="crystallogo.png">
     <link rel="apple-touch-icon" href="crystallogo.png">
+    <meta name="apple-mobile-web-app-title" content="Crystal Sunset">
+    <meta name="application-name" content="Crystal Sunset">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ffffff">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,12 +24,13 @@
         .info-card { background: linear-gradient(145deg, #f4fbfe 0%, #ffffff 100%); border: 1px solid #d4eef7; border-top: 3px solid #49bad5; border-radius: 14px; box-shadow: 0 6px 20px rgba(73, 186, 213, 0.10); overflow: hidden; }
         .voucher-highlight { background-color: #e0f5fb; color: #0369a1; padding: 1px 6px; border-radius: 5px; font-weight: 700; border: 1px solid rgba(73, 186, 213, 0.35); }
         .crystal-btn { background-color: #49bad5; border-radius: 8px; color: #ffffff; font-weight: 600; cursor: pointer; border: 1px solid #3ca5be; }
-        .lang-btn { padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 9px; font-weight: 700; color: #374151; cursor: pointer; }
+        .crystal-btn:active { transform: scale(0.97); }
+        .lang-btn { padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 9px; font-weight: 700; color: #374151; cursor: pointer; transition: all 0.15s ease; }
         .lang-btn.active { background-color: #e0f2fe; border-color: #49bad5; color: #0369a1; }
 
         .search-box {
             display: flex; align-items: center; background: #f8fafc; border: 1.5px solid #cbd5e1;
-            border-radius: 12px; padding: 8px 12px; transition: all 0.2s ease;
+            border-radius: 12px; padding: 9px 12px; transition: all 0.2s ease;
         }
         .search-box:focus-within {
             background: #ffffff; border-color: #49bad5; box-shadow: 0 0 0 3px rgba(73, 186, 213, 0.18);
@@ -46,14 +51,15 @@
         #preview-modal.open { display: flex; }
         #preview-viewport { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 12px; display: flex; flex-direction: column; align-items: center; touch-action: pan-y pinch-zoom; }
         .pdf-page-canvas { background: white; border-radius: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.35); margin-bottom: 14px; display: block; height: auto !important; }
-        .page-highlight { outline: 3px solid #49bad5; }
+        .page-highlight { outline: 3px solid #49bad5; box-shadow: 0 0 20px rgba(73, 186, 213, 0.8); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
+    <!-- Üst Bar: Yenile & Dil Seçimi -->
     <div class="flex justify-between items-center px-5 pt-3.5 shrink-0">
-        <button type="button" onclick="fetchFiles(true)" class="text-gray-500 flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+        <button type="button" onclick="fetchFiles(true)" class="text-gray-500 hover:text-sky-600 transition flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm active:scale-95">
             <i id="refresh-icon" class="fa-solid fa-rotate-right text-[10px] mr-1.5 text-[#49bad5]"></i>
             <span id="btn-refresh-text" class="text-[9px] font-bold tracking-wide uppercase">Yenile</span>
         </button>
@@ -66,11 +72,13 @@
         </div>
     </div>
 
+    <!-- Kurumsal Başlık -->
     <div class="text-center px-5 mt-4 shrink-0">
         <h1 lang="en" class="font-['Cinzel'] font-bold text-2xl tracking-[4px] text-[#1e293b]">CRYSTAL SUNSET</h1>
         <p lang="en" class="text-[11px] text-[#49bad5] mt-1 font-bold tracking-[0.28em]">DEPARTURE LIST</p>
     </div>
 
+    <!-- 4 Dilli Vurgulu Bilgilendirme Kartı -->
     <div class="px-5 mt-3.5 shrink-0">
         <div class="info-card">
             <div class="p-3.5 space-y-2.5">
@@ -97,7 +105,7 @@
         </div>
     </div>
 
-    <!-- ANA EKRAN ARAMA ÇUBUĞU (İsim / Voucher No / Acente) -->
+    <!-- Ana Ekran Arama Çubuğu -->
     <div class="px-5 mt-3.5 shrink-0">
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass text-[#49bad5] text-xs mr-2.5"></i>
@@ -118,15 +126,16 @@
         </div>
     </div>
 
+    <!-- Alt Logo -->
     <div class="dashed-border-t py-3 mt-auto flex justify-center items-center bg-white shrink-0">
         <img src="mainlogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-6 object-contain opacity-85">
     </div>
 </div>
 
-<!-- SAĞA-SOLA KAYDIRMALI ÖZEL ÖNİZLEME MODALI -->
+<!-- SAĞA-SOLA KAYDIRMALI ÖNİZLEME MODALI -->
 <div id="preview-modal">
     <div class="bg-white border-b border-gray-200 px-3 py-2.5 flex items-center justify-between shrink-0">
-        <button type="button" onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-bold">
+        <button type="button" onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
             <i class="fa-solid fa-arrow-left mr-1.5 text-[#49bad5]"></i>
             <span id="modal-close-text">Kapat</span>
         </button>
@@ -154,9 +163,9 @@
             <span id="search-match-info" class="text-[9px] text-sky-300 font-bold ml-1 whitespace-nowrap"></span>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0 ml-auto">
-            <button type="button" onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 flex items-center justify-center"><i class="fa-solid fa-minus text-[10px]"></i></button>
+            <button type="button" onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 hover:bg-slate-600 flex items-center justify-center active:scale-95"><i class="fa-solid fa-minus text-[10px]"></i></button>
             <button type="button" onclick="resetZoom()" id="zoom-level-label" class="px-2 h-7 rounded bg-slate-700 text-[10px] font-bold min-w-[46px]">100%</button>
-            <button type="button" onclick="adjustZoom(0.35)" class="w-7 h-7 rounded bg-[#49bad5] text-white flex items-center justify-center"><i class="fa-solid fa-plus text-[10px]"></i></button>
+            <button type="button" onclick="adjustZoom(0.35)" class="w-7 h-7 rounded bg-[#49bad5] text-white flex items-center justify-center active:scale-95"><i class="fa-solid fa-plus text-[10px]"></i></button>
         </div>
     </div>
 
@@ -230,13 +239,25 @@ var i18n = {
 var currentLang = 'tr';
 var allFiles = [];
 var filteredFiles = [];
+var rawSearchQuery = '';
 var searchQuery = '';
 var isLoading = false;
+var hasError = false;
 var currentFileIndex = -1;
 var currentZoom = 1.0;
 var activeFileData = null;
 var pdfPageTexts = [];
 var fileMemoryCache = {};
+
+// Türkçe/İngilizce İ-I-ı-i ve Unicode nokta farklarını tamamen eşitler
+function normalizeText(str) {
+    return String(str || '')
+        .replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i')
+        .toLowerCase()
+        .replace(/\u0307/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
 function changeLang(lang) {
     if (!i18n[lang]) lang = 'tr';
@@ -264,16 +285,25 @@ function changeLang(lang) {
         if (el) el.innerText = t.loadingList;
         return;
     }
-    if (filteredFiles.length === 0) renderFiles();
+    if (hasError && allFiles.length === 0) {
+        document.getElementById('files-container').innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + t.connectionError + '</div>';
+        return;
+    }
+    if (filteredFiles.length === 0) {
+        renderFiles();
+    }
 }
 
 function onMainSearch(val) {
-    searchQuery = (val || '').trim().toLowerCase();
+    rawSearchQuery = (val || '').trim();
+    searchQuery = normalizeText(rawSearchQuery);
     var clearBtn = document.getElementById('main-search-clear');
-    if (searchQuery.length > 0) clearBtn.classList.remove('hidden');
+    if (rawSearchQuery.length > 0) clearBtn.classList.remove('hidden');
     else clearBtn.classList.add('hidden');
 
-    applyFilterAndRender();
+    if (!isLoading || allFiles.length > 0) {
+        applyFilterAndRender();
+    }
 }
 
 function clearMainSearch() {
@@ -286,7 +316,7 @@ function applyFilterAndRender() {
         filteredFiles = allFiles.slice();
     } else {
         filteredFiles = allFiles.filter(function(f) {
-            var haystack = (f.searchText || f.title || '').toLowerCase();
+            var haystack = normalizeText((f.searchText || '') + ' ' + (f.title || ''));
             return haystack.indexOf(searchQuery) !== -1;
         });
     }
@@ -299,17 +329,27 @@ function fetchFiles(forceRefresh) {
     var t = i18n[currentLang];
 
     isLoading = true;
+    hasError = false;
     if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+    if (forceRefresh) {
+        allFiles = [];
+        filteredFiles = [];
+        fileMemoryCache = {};
+    }
 
     if (allFiles.length === 0) {
         container.innerHTML = '<div class="text-center py-10 text-gray-400 text-xs font-medium"><div class="spinner"></div><span id="loading-list-text">' + t.loadingList + '</span></div>';
     }
 
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 15000);
     var url = SCRIPT_API_URL + '?action=list' + (forceRefresh ? '&nocache=1' : '') + '&t=' + Date.now();
 
-    fetch(url, { method: 'GET', redirect: 'follow' })
+    fetch(url, { method: 'GET', redirect: 'follow', signal: controller.signal })
         .then(function(res) { return res.text(); })
         .then(function(raw) {
+            clearTimeout(timeoutId);
             isLoading = false;
             if (refreshIcon) refreshIcon.classList.remove('fa-spin');
             var data = JSON.parse(raw);
@@ -317,11 +357,14 @@ function fetchFiles(forceRefresh) {
                 allFiles = data.files || [];
                 applyFilterAndRender();
             } else {
+                hasError = true;
                 container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + i18n[currentLang].connectionError + '</div>';
             }
         })
         .catch(function() {
+            clearTimeout(timeoutId);
             isLoading = false;
+            hasError = true;
             if (refreshIcon) refreshIcon.classList.remove('fa-spin');
             container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + i18n[currentLang].connectionError + '</div>';
         });
@@ -338,7 +381,7 @@ function renderFiles() {
     }
 
     var cardsHtml = filteredFiles.map(function(file, idx) {
-        var thumbUrl = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.id) + '&sz=w500';
+        var thumbUrl = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.id) + '&sz=w400';
         return '<div onclick="openPreviewByIndex(' + idx + ')" class="thumb-card">' +
             '<img src="' + thumbUrl + '" alt="" loading="lazy" class="thumb-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
             '<div style="display:none;" class="w-full h-full items-center justify-center bg-slate-50 text-sky-400"><i class="fa-regular fa-file-lines text-4xl"></i></div>' +
@@ -346,6 +389,19 @@ function renderFiles() {
     }).join('');
 
     container.innerHTML = '<div class="grid grid-cols-2 gap-3">' + cardsHtml + '</div>';
+}
+
+// Açık belgenin yanındaki belgeleri sessizce hafızaya hazırlar (hızlı kaydırma için)
+function preloadFile(index) {
+    if (index < 0 || index >= filteredFiles.length) return;
+    var f = filteredFiles[index];
+    if (!f || fileMemoryCache[f.id]) return;
+    fetch(SCRIPT_API_URL + '?action=file&id=' + encodeURIComponent(f.id), { method: 'GET', redirect: 'follow' })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.status === 'ok') fileMemoryCache[f.id] = data;
+        })
+        .catch(function() {});
 }
 
 function openPreviewByIndex(index) {
@@ -362,7 +418,7 @@ function openPreviewByIndex(index) {
     document.getElementById('modal-counter').innerText = (index + 1) + ' / ' + filteredFiles.length;
     document.getElementById('btn-prev-file').disabled = (index === 0);
     document.getElementById('btn-next-file').disabled = (index === filteredFiles.length - 1);
-    document.getElementById('voucher-input').value = searchQuery || '';
+    document.getElementById('voucher-input').value = rawSearchQuery || '';
     document.getElementById('search-match-info').innerText = '';
 
     wrapper.innerHTML = '';
@@ -389,6 +445,8 @@ function openPreviewByIndex(index) {
             searchBox.classList.remove('hidden');
             renderPdfFromBase64(filePayload.base64, wrapper, index);
         }
+        preloadFile(index + 1);
+        preloadFile(index - 1);
     };
 
     if (fileMemoryCache[meta.id]) {
@@ -417,7 +475,8 @@ function navigatePreview(step) {
     }
 }
 
-(function initSwipe() {
+// Mobil Sağa-Sola Kaydırma ve Masaüstü Klavye Yön Tuşları Desteği
+(function initNavigationEvents() {
     var viewport = document.getElementById('preview-viewport');
     var startX = 0, startY = 0;
 
@@ -438,6 +497,14 @@ function navigatePreview(step) {
             else navigatePreview(-1);
         }
     }, { passive: true });
+
+    document.addEventListener('keydown', function(e) {
+        if (currentFileIndex === -1) return;
+        if (document.activeElement && document.activeElement.id === 'voucher-input') return;
+        if (e.key === 'ArrowRight') navigatePreview(1);
+        else if (e.key === 'ArrowLeft') navigatePreview(-1);
+        else if (e.key === 'Escape') closePreview();
+    });
 })();
 
 async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
@@ -452,7 +519,7 @@ async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
     for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         if (currentFileIndex !== expectedIndex) return;
         var page = await pdf.getPage(pageNum);
-        var viewport = page.getViewport({ scale: 2.0 });
+        var viewport = page.getViewport({ scale: 1.6 });
         var canvas = document.createElement('canvas');
         canvas.className = 'pdf-page-canvas';
         canvas.width = viewport.width;
@@ -462,21 +529,20 @@ async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
         await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
         try {
             var tc = await page.getTextContent();
-            var txt = tc.items.map(function(it) { return it.str; }).join(' ').toLowerCase();
+            var txt = normalizeText(tc.items.map(function(it) { return it.str; }).join(' '));
             pdfPageTexts.push({ pageNum: pageNum, text: txt, canvas: canvas });
         } catch (e) {}
     }
 
-    // Ana ekranda arama yapıldıysa belge açılınca ilgili sayfaya otomatik odaklan
-    if (searchQuery && currentFileIndex === expectedIndex) {
-        searchInPdf(searchQuery);
+    if (rawSearchQuery && currentFileIndex === expectedIndex) {
+        searchInPdf(rawSearchQuery);
     }
 }
 
 function searchInPdf(query) {
     var infoEl = document.getElementById('search-match-info');
     var t = i18n[currentLang];
-    var q = (query || '').trim().toLowerCase();
+    var q = normalizeText(query);
     pdfPageTexts.forEach(function(p) { p.canvas.classList.remove('page-highlight'); });
     if (q.length < 2 || pdfPageTexts.length === 0) { infoEl.innerText = ''; return; }
     var matches = pdfPageTexts.filter(function(p) { return p.text.indexOf(q) !== -1; });
@@ -519,8 +585,16 @@ function closePreview() {
     activeFileData = null;
 }
 
-changeLang('tr');
-fetchFiles(false);
+// Tarayıcı diline göre başlangıç ve her açılışta taze veri çekimi
+(function init() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var paramLang = urlParams.get('lang');
+    var browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
+    var startLang = (paramLang && i18n[paramLang]) ? paramLang : (i18n[browserLang] ? browserLang : 'tr');
+
+    changeLang(startLang);
+    fetchFiles(false);
+})();
 </script>
 
 </body>
