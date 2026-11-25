@@ -22,15 +22,22 @@
         .crystal-btn { background-color: #49bad5; border-radius: 8px; color: #ffffff; font-weight: 600; cursor: pointer; border: 1px solid #3ca5be; }
         .lang-btn { padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 9px; font-weight: 700; color: #374151; cursor: pointer; }
         .lang-btn.active { background-color: #e0f2fe; border-color: #49bad5; color: #0369a1; }
-        .file-card { background: #ffffff; border: 1px solid #eaeaea; border-left: 3px solid #49bad5; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.15s ease; }
-        .file-card:active { transform: scale(0.985); background: #f4fbff; }
-        .now-badge { font-size: 8px; color: #00a2df; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(0, 162, 223, 0.3); padding: 2px 7px; border-radius: 12px; background-color: rgba(0, 162, 223, 0.06); }
-        .pulse-dot { width: 5px; height: 5px; background-color: #00a2df; border-radius: 50%; }
+
+        /* 2'li Sadece Görsel Önizleme Kartı */
+        .thumb-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
+            aspect-ratio: 3 / 4; position: relative; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .thumb-card:active { transform: scale(0.97); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08); }
+        .thumb-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; background: #f8fafc; }
+
         .spinner { width: 28px; height: 28px; border: 3px solid rgba(73, 186, 213, 0.25); border-radius: 50%; border-top-color: #49bad5; animation: spin 0.9s linear infinite; margin: 0 auto 10px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        #preview-modal { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.92); z-index: 5000; display: none; flex-direction: column; }
+
+        #preview-modal { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.94); z-index: 5000; display: none; flex-direction: column; }
         #preview-modal.open { display: flex; }
-        #preview-viewport { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 12px; display: flex; flex-direction: column; align-items: center; }
+        #preview-viewport { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 12px; display: flex; flex-direction: column; align-items: center; touch-action: pan-y pinch-zoom; }
         .pdf-page-canvas { background: white; border-radius: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.35); margin-bottom: 14px; display: block; height: auto !important; }
         .page-highlight { outline: 3px solid #49bad5; }
     </style>
@@ -83,8 +90,9 @@
         </div>
     </div>
 
+    <!-- 2'li Sadece Önizleme Izgarası -->
     <div class="px-5 py-4 flex-grow">
-        <div id="files-container" class="space-y-2.5">
+        <div id="files-container">
             <div class="text-center py-10 text-gray-400 text-xs font-medium">
                 <div class="spinner"></div>
                 <span id="loading-list-text">Güncel listeler kontrol ediliyor...</span>
@@ -97,16 +105,25 @@
     </div>
 </div>
 
+<!-- SAĞA-SOLA KAYDIRMALI ÖZEL ÖNİZLEME MODALI -->
 <div id="preview-modal">
-    <div class="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between shrink-0">
+    <div class="bg-white border-b border-gray-200 px-3 py-2.5 flex items-center justify-between shrink-0">
         <button type="button" onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-bold">
             <i class="fa-solid fa-arrow-left mr-1.5 text-[#49bad5]"></i>
             <span id="modal-close-text">Kapat</span>
         </button>
-        <div class="text-center px-2 overflow-hidden flex-1">
-            <div id="modal-agency-badge" class="text-[10px] font-extrabold text-[#49bad5] tracking-wider"></div>
-            <div id="modal-file-title" class="text-[11px] font-semibold text-gray-700 truncate"></div>
+
+        <!-- Önceki / Sonraki Gezinme ve Sayaç -->
+        <div class="flex items-center space-x-2">
+            <button type="button" id="btn-prev-file" onclick="navigatePreview(-1)" class="w-8 h-8 rounded-lg bg-gray-100 text-slate-700 flex items-center justify-center active:scale-95 disabled:opacity-30">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <span id="modal-counter" class="text-xs font-extrabold text-slate-700 min-w-[44px] text-center">1 / 1</span>
+            <button type="button" id="btn-next-file" onclick="navigatePreview(1)" class="w-8 h-8 rounded-lg bg-gray-100 text-slate-700 flex items-center justify-center active:scale-95 disabled:opacity-30">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
         </div>
+
         <button type="button" onclick="downloadCurrentFile()" class="crystal-btn px-3 py-1.5 text-xs flex items-center shrink-0">
             <i class="fa-solid fa-download mr-1.5 text-[11px]"></i>
             <span id="modal-download-text">İndir</span>
@@ -143,10 +160,9 @@ var i18n = {
         infoMain: 'Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir. Lütfen <span class="voucher-highlight">Transfer Voucher Numaranız</span> üzerinden kontrol sağlayınız.',
         infoNotice: 'Acente transferleri ve saatleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır.',
         infoFarewell: '✦ Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle ✦',
-        refresh: 'Yenile', otherAgency: 'DİĞER',
+        refresh: 'Yenile',
         loadingList: 'Güncel listeler kontrol ediliyor...',
         emptyList: 'Şu an için yüklenmiş aktif bir çıkış listesi bulunmamaktadır.',
-        uploadedAt: 'Yüklenme:', newBadge: 'YENİ',
         close: 'Kapat', download: 'İndir', loadingDoc: 'Belge açılıyor...',
         searchPlaceholder: 'Voucher No / İsim ara...', foundPage: 'Sayfa', notFound: 'Yok',
         connectionError: 'Listeler alınamadı. Lütfen Yenile butonuna dokunun.'
@@ -155,10 +171,9 @@ var i18n = {
         infoMain: 'The departure information sent by travel agencies is listed below. Please verify using your <span class="voucher-highlight">Transfer Voucher Number</span>.',
         infoNotice: 'Our establishment holds no responsibility regarding agency transfer operations or schedules.',
         infoFarewell: '✦ We wish you a pleasant journey and hope to welcome you again ✦',
-        refresh: 'Refresh', otherAgency: 'OTHER',
+        refresh: 'Refresh',
         loadingList: 'Checking latest departure lists...',
         emptyList: 'There are currently no active departure lists available.',
-        uploadedAt: 'Uploaded:', newBadge: 'NEW',
         close: 'Close', download: 'Download', loadingDoc: 'Opening document...',
         searchPlaceholder: 'Search Voucher No...', foundPage: 'Page', notFound: '0',
         connectionError: 'Could not load lists. Please tap Refresh.'
@@ -167,10 +182,9 @@ var i18n = {
         infoMain: 'Die von den Reiseagenturen übermittelten Abreiseinformationen sind unten aufgeführt. Bitte prüfen Sie diese anhand Ihrer <span class="voucher-highlight">Transfer-Vouchernummer</span>.',
         infoNotice: 'Für Agenturtransfers und Abholzeiten übernimmt unser Haus keinerlei Haftung.',
         infoFarewell: '✦ Wir wünschen Ihnen eine angenehme Reise und freuen uns auf ein Wiedersehen ✦',
-        refresh: 'Aktualisieren', otherAgency: 'SONSTIGE',
+        refresh: 'Aktualisieren',
         loadingList: 'Aktuelle Abreiselisten werden geladen...',
         emptyList: 'Derzeit sind keine aktiven Abreiselisten vorhanden.',
-        uploadedAt: 'Hochgeladen:', newBadge: 'NEU',
         close: 'Schließen', download: 'Laden', loadingDoc: 'Dokument wird geöffnet...',
         searchPlaceholder: 'Vouchernr. suchen...', foundPage: 'Seite', notFound: '0',
         connectionError: 'Verbindungsfehler. Bitte tippen Sie auf Aktualisieren.'
@@ -179,10 +193,9 @@ var i18n = {
         infoMain: 'Ниже представлена информация о выезде от туристических агентств. Пожалуйста, проверьте данные по <span class="voucher-highlight">номеру трансферного ваучера</span>.',
         infoNotice: 'Администрация отеля не несет ответственности за организацию и время трансферов агентств.',
         infoFarewell: '✦ Желаем вам приятного путешествия и надеемся на новую встречу! ✦',
-        refresh: 'Обновить', otherAgency: 'ДРУГИЕ',
+        refresh: 'Обновить',
         loadingList: 'Загрузка актуальных списков...',
         emptyList: 'На данный момент активных списков на выезд нет.',
-        uploadedAt: 'Загружено:', newBadge: 'НОВОЕ',
         close: 'Закрыть', download: 'Скачать', loadingDoc: 'Открытие документа...',
         searchPlaceholder: 'Поиск по ваучеру...', foundPage: 'Стр.', notFound: 'Нет',
         connectionError: 'Ошибка подключения. Пожалуйста, нажмите Обновить.'
@@ -192,14 +205,11 @@ var i18n = {
 var currentLang = 'tr';
 var allFiles = [];
 var isLoading = false;
+var currentFileIndex = -1;
 var currentZoom = 1.0;
 var activeFileData = null;
 var pdfPageTexts = [];
 var fileMemoryCache = {};
-
-function escapeHtml(str) {
-    return String(str).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
-}
 
 function changeLang(lang) {
     if (!i18n[lang]) lang = 'tr';
@@ -226,7 +236,7 @@ function changeLang(lang) {
         if (el) el.innerText = t.loadingList;
         return;
     }
-    renderFiles();
+    if (allFiles.length === 0) renderFiles();
 }
 
 function fetchFiles(forceRefresh) {
@@ -248,16 +258,12 @@ function fetchFiles(forceRefresh) {
         .then(function(raw) {
             isLoading = false;
             if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-            var data;
-            try { data = JSON.parse(raw); } catch (e) {
-                container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + i18n[currentLang].connectionError + '</div>';
-                return;
-            }
+            var data = JSON.parse(raw);
             if (data.status === 'ok') {
                 allFiles = data.files || [];
                 renderFiles();
             } else {
-                container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + escapeHtml(data.message || i18n[currentLang].connectionError) + '</div>';
+                container.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center">' + i18n[currentLang].connectionError + '</div>';
             }
         })
         .catch(function() {
@@ -276,43 +282,32 @@ function renderFiles() {
         return;
     }
 
-    var nowMs = Date.now();
-    var twoHoursMs = 7200000;
-    container.innerHTML = allFiles.map(function(file) {
-        var isRecent = (nowMs - file.timestamp) <= twoHoursMs;
-        var agencyDisplay = file.agency === 'DIGER' ? t.otherAgency : file.agency;
-        var isImg = (file.mimeType && file.mimeType.indexOf('image') !== -1) || /\.(jpg|jpeg|png)$/i.test(file.title);
-        var iconClass = isImg ? 'fa-regular fa-file-image text-sky-500' : 'fa-regular fa-file-pdf text-rose-500';
-
-        return '<div onclick="openPreview(\'' + file.id + '\')" class="file-card flex items-center justify-between gap-3">' +
-            '<div class="flex items-center gap-3 min-w-0 flex-1">' +
-                '<div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0"><i class="' + iconClass + ' text-lg"></i></div>' +
-                '<div class="min-w-0 flex-1">' +
-                    '<div class="flex items-center gap-2 mb-0.5">' +
-                        '<span class="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-[#49bad5]/15 text-[#0284c7]">' + escapeHtml(agencyDisplay) + '</span>' +
-                        (isRecent ? '<span class="now-badge"><span class="pulse-dot"></span>' + t.newBadge + '</span>' : '') +
-                    '</div>' +
-                    '<div class="text-[12px] font-bold text-slate-700 truncate">' + escapeHtml(file.title) + '</div>' +
-                    '<div class="text-[10px] text-gray-400 font-semibold mt-0.5"><i class="fa-regular fa-clock mr-1"></i>' + t.uploadedAt + ' ' + file.dateStr + ' - <b>' + file.timeStr + '</b></div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="shrink-0 flex items-center text-[#49bad5] bg-sky-50 px-2.5 py-2 rounded-lg border border-sky-100 text-[10px] font-bold"><i class="fa-solid fa-eye text-xs"></i></div>' +
+    // 2 Sütunlu, Sadece Belge Önizleme Görseli İçeren Izgara
+    var cardsHtml = allFiles.map(function(file, idx) {
+        var thumbUrl = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.id) + '&sz=w500';
+        return '<div onclick="openPreviewByIndex(' + idx + ')" class="thumb-card">' +
+            '<img src="' + thumbUrl + '" alt="" loading="lazy" class="thumb-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+            '<div style="display:none;" class="w-full h-full items-center justify-center bg-slate-50 text-sky-400"><i class="fa-regular fa-file-lines text-4xl"></i></div>' +
         '</div>';
     }).join('');
+
+    container.innerHTML = '<div class="grid grid-cols-2 gap-3">' + cardsHtml + '</div>';
 }
 
-function openPreview(fileId) {
-    var meta = allFiles.find(function(f) { return f.id === fileId; });
-    if (!meta) return;
-
+function openPreviewByIndex(index) {
+    if (index < 0 || index >= allFiles.length) return;
+    currentFileIndex = index;
+    var meta = allFiles[index];
     var t = i18n[currentLang];
+
     var modal = document.getElementById('preview-modal');
     var loader = document.getElementById('preview-loader');
     var wrapper = document.getElementById('preview-pages-wrapper');
     var searchBox = document.getElementById('pdf-search-box');
 
-    document.getElementById('modal-agency-badge').innerText = meta.agency === 'DIGER' ? t.otherAgency : meta.agency;
-    document.getElementById('modal-file-title').innerText = meta.title;
+    document.getElementById('modal-counter').innerText = (index + 1) + ' / ' + allFiles.length;
+    document.getElementById('btn-prev-file').disabled = (index === 0);
+    document.getElementById('btn-next-file').disabled = (index === allFiles.length - 1);
     document.getElementById('voucher-input').value = '';
     document.getElementById('search-match-info').innerText = '';
 
@@ -325,8 +320,9 @@ function openPreview(fileId) {
     pdfPageTexts = [];
 
     var handlePayload = function(filePayload) {
+        if (currentFileIndex !== index) return; // Kullanıcı hızlıca başka dosyaya geçtiyse eski çizimi iptal et
         activeFileData = { mimeType: filePayload.mimeType, base64: filePayload.base64, cleanTitle: meta.title };
-        var isImg = (filePayload.mimeType && filePayload.mimeType.indexOf('image') !== -1) || /\.(jpg|jpeg|png|webp)$/i.test(meta.title);
+        var isImg = (filePayload.mimeType && filePayload.mimeType.indexOf('image') !== -1);
         loader.style.display = 'none';
         if (isImg) {
             searchBox.classList.add('hidden');
@@ -337,29 +333,61 @@ function openPreview(fileId) {
             wrapper.appendChild(img);
         } else {
             searchBox.classList.remove('hidden');
-            renderPdfFromBase64(filePayload.base64, wrapper);
+            renderPdfFromBase64(filePayload.base64, wrapper, index);
         }
     };
 
-    if (fileMemoryCache[fileId]) {
-        handlePayload(fileMemoryCache[fileId]);
+    if (fileMemoryCache[meta.id]) {
+        handlePayload(fileMemoryCache[meta.id]);
         return;
     }
 
-    fetch(SCRIPT_API_URL + '?action=file&id=' + encodeURIComponent(fileId), { method: 'GET', redirect: 'follow' })
+    fetch(SCRIPT_API_URL + '?action=file&id=' + encodeURIComponent(meta.id), { method: 'GET', redirect: 'follow' })
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.status !== 'ok') throw new Error(data.message || 'Error');
-            fileMemoryCache[fileId] = data;
+            fileMemoryCache[meta.id] = data;
             handlePayload(data);
         })
         .catch(function() {
+            if (currentFileIndex !== index) return;
             loader.style.display = 'none';
             wrapper.innerHTML = '<div class="bg-red-500/20 border border-red-400/40 text-white rounded-xl p-5 text-xs text-center mt-10">' + t.connectionError + '</div>';
         });
 }
 
-async function renderPdfFromBase64(base64, wrapper) {
+function navigatePreview(step) {
+    var nextIndex = currentFileIndex + step;
+    if (nextIndex >= 0 && nextIndex < allFiles.length) {
+        openPreviewByIndex(nextIndex);
+    }
+}
+
+// Dokunmatik Sağa / Sola Kaydırma (Swipe) Algılayıcı
+(function initSwipe() {
+    var viewport = document.getElementById('preview-viewport');
+    var startX = 0, startY = 0;
+
+    viewport.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', function(e) {
+        if (currentZoom > 1.05 || e.changedTouches.length !== 1) return;
+        var diffX = e.changedTouches[0].clientX - startX;
+        var diffY = e.changedTouches[0].clientY - startY;
+
+        if (Math.abs(diffX) > 65 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
+            if (diffX < 0) navigatePreview(1);  // Sola kaydır -> Sonraki
+            else navigatePreview(-1);           // Sağa kaydır -> Önceki
+        }
+    }, { passive: true });
+})();
+
+async function renderPdfFromBase64(base64, wrapper, expectedIndex) {
     if (window.pdfjsLib) {
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
@@ -369,6 +397,7 @@ async function renderPdfFromBase64(base64, wrapper) {
 
     var pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
     for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        if (currentFileIndex !== expectedIndex) return;
         var page = await pdf.getPage(pageNum);
         var viewport = page.getViewport({ scale: 2.0 });
         var canvas = document.createElement('canvas');
@@ -419,7 +448,7 @@ function downloadCurrentFile() {
     if (!activeFileData) return;
     var link = document.createElement('a');
     link.href = 'data:' + (activeFileData.mimeType || 'application/pdf') + ';base64,' + activeFileData.base64;
-    link.download = activeFileData.cleanTitle || 'Departure_List.pdf';
+    link.download = (activeFileData.cleanTitle || 'Departure_List').replace(/\.(doc|docx)$/i, '.pdf');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -428,6 +457,7 @@ function closePreview() {
     document.getElementById('preview-modal').classList.remove('open');
     document.getElementById('preview-pages-wrapper').innerHTML = '';
     document.body.style.overflow = '';
+    currentFileIndex = -1;
     activeFileData = null;
 }
 
