@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crystal Sunset - Departure List</title>
+    
+    <!-- Tarayıcı Sekmesi ve Ana Ekran (App) İkon Ayarları -->
+    <link rel="icon" type="image/png" href="crystallogo.png">
+    <link rel="apple-touch-icon" href="crystallogo.png">
+    <meta name="apple-mobile-web-app-title" content="Crystal Sunset">
+    <meta name="application-name" content="Crystal Sunset">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    
+    <link rel="preload" as="image" href="crystallogo.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; overflow-x: hidden; }
+        
+        /* Açılış Ekranı (QR Info Standartlarında) */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(73, 186, 213, 0.3); border-radius: 50%; border-top-color: #49bad5; animation: spin 1s ease-in-out infinite; margin-top: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Ana Uygulama Çerçevesi */
+        .app-container {
+            max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100dvh;
+            display: flex; flex-direction: column; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.04);
+            opacity: 0; animation: fadeInApp 0.5s forwards 0.2s;
+        }
+        @keyframes fadeInApp { to { opacity: 1; } }
+
+        .dashed-border-y { border-top: 1px dashed #e5e7eb; border-bottom: 1px dashed #e5e7eb; }
+        .dashed-border-t { border-top: 1px dashed #e5e7eb; }
+
+        /* Crystal Özel Panel ve Butonlar */
+        .crystal-panel {
+            background-color: #49bad5; border-radius: 12px; padding: 14px 16px; color: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5), 0 4px 10px rgba(73, 186, 213, 0.2);
+        }
+        .crystal-btn {
+            background-color: #49bad5; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.05);
+            color: #ffffff; font-weight: 600; transition: all 0.15s ease; cursor: pointer; border: 1px solid #3ca5be;
+        }
+        .crystal-btn:active { transform: scale(0.97); }
+
+        /* Dil Seçim Butonları */
+        .lang-btn {
+            padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
+            font-size: 9px; font-weight: 700; color: #374151; transition: all 0.15s ease;
+        }
+        .lang-btn.active {
+            background-color: #e0f2fe; border-color: #49bad5; color: #0369a1;
+        }
+
+        /* Acente Filtre Çipleri */
+        .agency-chip {
+            padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap;
+            border: 1px solid #e5e7eb; background: #ffffff; color: #4b5563; transition: all 0.2s ease; cursor: pointer;
+        }
+        .agency-chip.active {
+            background: #49bad5; color: #ffffff; border-color: #3ca5be; box-shadow: 0 2px 8px rgba(73, 186, 213, 0.3);
+        }
+
+        /* Liste Kartları (Activity Box Standartlarında) */
+        .file-card {
+            background: linear-gradient(145deg, #ffffff, #fdfdfd); border: 1px solid #eaeaea; border-left: 3px solid #49bad5;
+            border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: all 0.2s ease; cursor: pointer;
+        }
+        .file-card:active { transform: scale(0.985); background: #f4fbff; }
+
+        /* Yanıp Sönen Yeni Rozeti */
+        .now-badge {
+            font-size: 8px; color: #00a2df; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
+            letter-spacing: 0.8px; border: 1px solid rgba(0, 162, 223, 0.3); padding: 2px 7px; border-radius: 12px;
+            background-color: rgba(0, 162, 223, 0.06);
+        }
+        .pulse-dot { width: 5px; height: 5px; background-color: #00a2df; border-radius: 50%; animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(0, 162, 223, 0.4); } 70% { box-shadow: 0 0 0 4px rgba(0, 162, 223, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 162, 223, 0); } }
+
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Özel Sayfa İçi PDF / Görsel Önizleme Modalı */
+        #preview-modal {
+            position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.92); z-index: 5000;
+            display: none; flex-direction: column; backdrop-filter: blur(4px);
+        }
+        #preview-modal.open { display: flex; }
+        #preview-viewport {
+            flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 12px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .pdf-page-canvas {
+            background: white; border-radius: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+            margin-bottom: 14px; display: block; height: auto !important;
+        }
+        .page-highlight {
+            outline: 3px solid #49bad5; box-shadow: 0 0 20px rgba(73, 186, 213, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+<!-- AÇILIŞ EKRANI -->
+<div id="splash-screen">
+    <img src="crystallogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-[140px] object-contain">
+    <div class="spinner"></div>
+</div>
+
+<!-- ANA EKRAN -->
+<div class="app-container">
+    
+    <!-- Üst Bar: Yenile ve 4 Dil Seçeneği -->
+    <div class="flex justify-between items-center px-5 pt-3.5 shrink-0">
+        <button onclick="fetchFiles(true)" class="text-gray-500 hover:text-sky-600 transition flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm active:scale-95">
+            <i id="refresh-icon" class="fa-solid fa-rotate-right text-[10px] mr-1.5 text-[#49bad5]"></i>
+            <span id="btn-refresh-text" class="text-[9px] font-bold tracking-wide uppercase">Yenile</span>
+        </button>
+
+        <div class="flex space-x-1 shrink-0">
+            <button onclick="changeLang('tr')" id="lang-tr" class="lang-btn active">🇹🇷 TR</button>
+            <button onclick="changeLang('en')" id="lang-en" class="lang-btn">🇬🇧 EN</button>
+            <button onclick="changeLang('de')" id="lang-de" class="lang-btn">🇩🇪 DE</button>
+            <button onclick="changeLang('ru')" id="lang-ru" class="lang-btn">🇷🇺 RU</button>
+        </div>
+    </div>
+
+    <!-- Üst Başlık & Alt Başlık -->
+    <div class="text-center px-5 mt-4 shrink-0">
+        <h1 class="font-['Cinzel'] font-bold text-2xl tracking-[4px] text-[#1e293b]">
+            CRYSTAL SUNSET
+        </h1>
+        <p class="text-[11px] text-[#49bad5] mt-1 font-bold tracking-[0.28em] uppercase">
+            Departure List
+        </p>
+    </div>
+
+    <!-- 4 Dilli Bilgilendirme ve Sorumluluk Metni -->
+    <div class="px-5 mt-3.5 shrink-0">
+        <div class="crystal-panel text-[11.5px] leading-relaxed text-left">
+            <div class="flex items-start gap-2.5">
+                <i class="fa-solid fa-plane-departure text-white/90 text-sm mt-0.5 shrink-0"></i>
+                <p id="disclaimer-text" class="font-medium"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acente Filtre Barı -->
+    <div class="dashed-border-y py-2.5 mt-3.5 px-5 shrink-0 bg-gray-50/50">
+        <div id="agency-filters" class="flex space-x-1.5 overflow-x-auto hide-scroll">
+            <!-- JS ile dinamik oluşturulur -->
+        </div>
+    </div>
+
+    <!-- Dosya Listesi Alanı -->
+    <div class="px-5 py-3.5 flex-grow">
+        <div id="files-container" class="space-y-2.5">
+            <!-- Yükleniyor İskeleti -->
+            <div class="text-center py-10 text-gray-400 text-xs font-medium">
+                <div class="spinner mx-auto mb-3" style="width:28px; height:28px; border-width:2px;"></div>
+                <span id="loading-list-text">Listeler yükleniyor...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alt Logo (Footer) -->
+    <div class="dashed-border-t py-3 mt-auto flex justify-center items-center bg-white shrink-0">
+        <img src="mainlogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-6 object-contain opacity-85">
+    </div>
+</div>
+
+<!-- ÖZEL ÖNİZLEME EKRANI (SIFIR GOOGLE DRIVE ARAYÜZÜ) -->
+<div id="preview-modal">
+    <!-- Üst Kontrol Çubuğu -->
+    <div class="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between shadow-sm shrink-0">
+        <button onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-arrow-left mr-1.5 text-[#49bad5]"></i>
+            <span id="modal-close-text">Kapat</span>
+        </button>
+
+        <div class="text-center px-2 overflow-hidden flex-1">
+            <div id="modal-agency-badge" class="text-[10px] font-extrabold text-[#49bad5] tracking-wider uppercase"></div>
+            <div id="modal-file-title" class="text-[11px] font-semibold text-gray-700 truncate"></div>
+        </div>
+
+        <button id="modal-download-btn" onclick="downloadCurrentFile()" class="crystal-btn px-3 py-1.5 text-xs flex items-center shrink-0">
+            <i class="fa-solid fa-download mr-1.5 text-[11px]"></i>
+            <span id="modal-download-text">İndir</span>
+        </button>
+    </div>
+
+    <!-- Yakınlaştırma ve Voucher Arama Çubuğu -->
+    <div class="bg-slate-800 text-white px-3 py-2 flex items-center justify-between gap-2 text-xs border-b border-slate-700 shrink-0">
+        <!-- Voucher No Arama (PDF Metin Katmanı İçin) -->
+        <div id="pdf-search-box" class="flex items-center bg-slate-700/80 rounded-lg px-2.5 py-1 flex-1 max-w-[230px] border border-slate-600">
+            <i class="fa-solid fa-magnifying-glass text-sky-400 text-[11px] mr-2"></i>
+            <input id="voucher-input" type="text" oninput="searchInPdf(this.value)" placeholder="Voucher / İsim Ara..." class="bg-transparent text-white placeholder-slate-400 text-[11px] w-full focus:outline-none">
+            <span id="search-match-info" class="text-[9px] text-sky-300 font-bold ml-1 whitespace-nowrap"></span>
+        </div>
+
+        <!-- Zoom Butonları -->
+        <div class="flex items-center space-x-1.5 shrink-0 ml-auto">
+            <button onclick="adjustZoom(-0.35)" class="w-7 h-7 rounded bg-slate-700 hover:bg-slate-600 flex items-center justify-center font-bold text-sm active:scale-95">
+                <i class="fa-solid fa-minus text-[10px]"></i>
+            </button>
+            <button onclick="resetZoom()" id="zoom-level-label" class="px-2 h-7 rounded bg-slate-700 text-[10px] font-bold min-w-[46px]">
+                100%
+            </button>
+            <button onclick="adjustZoom(0.35)" class="w-7 h-7 rounded bg-[#49bad5] text-white flex items-center justify-center font-bold text-sm active:scale-95">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Dosya Çizim Alanı -->
+    <div id="preview-viewport">
+        <div id="preview-loader" class="my-auto text-center text-white">
+            <div class="spinner mx-auto mb-3" style="border-top-color:#ffffff;"></div>
+            <p id="modal-loading-text" class="text-xs text-slate-300 font-medium">Belge hazırlanıyor...</p>
+        </div>
+        <div id="preview-pages-wrapper" class="w-full max-w-[760px] flex flex-col items-center"></div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // ÖNEMLİ: Google Apps Script "Web Uygulaması URL"nizi buraya yapıştırın:
+    // =========================================================================
+    const SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbyXu3oYpx-PFrkZ2uwm8shu1tB3aMOYadBwLeRMAgkyAv9bFHjL-DH9r2BnU2KCL9_l/exec";
+
+    // PDF.js Worker Ayarı
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // 4 Dilli Metin Sözlüğü
+    const i18n = {
+        tr: {
+            disclaimer: "Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir, transfer voucher numarası üzerinden kontrol sağlayınız. Acente transferleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır. Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle.",
+            refresh: "Yenile",
+            allAgencies: "TÜMÜ",
+            otherAgency: "DİĞER",
+            loadingList: "Güncel listeler kontrol ediliyor...",
+            emptyList: "Şu an için yüklenmiş aktif bir çıkış listesi bulunmamaktadır.",
+            emptyAgency: "Seçili acenteye ait güncel bir liste henüz yüklenmemiştir.",
+            uploadedAt: "Yüklenme:",
+            newBadge: "YENİ",
+            viewBtn: "Görüntüle",
+            close: "Kapat",
+            download: "İndir",
+            loadingDoc: "Belge açılıyor...",
+            searchPlaceholder: "Voucher No / İsim ara...",
+            foundPage: "Sayfa",
+            notFound: "Yok",
+            apiNotConfigured: "Lütfen index.html içindeki SCRIPT_API_URL alanına Apps Script Web Uygulaması bağlantınızı yapıştırın.",
+            connectionError: "Listeler alınırken bağlantı hatası oluştu. Lütfen tekrar deneyin."
+        },
+        en: {
+            disclaimer: "The departure information sent to us by travel agencies is listed below; please check using your transfer voucher number. Our establishment holds no responsibility regarding agency transfers. We wish you a pleasant journey and hope to welcome you again.",
+            refresh: "Refresh",
+            allAgencies: "ALL",
+            otherAgency: "OTHER",
+            loadingList: "Checking latest departure lists...",
+            emptyList: "There are currently no active departure lists available.",
+            emptyAgency: "No departure list has been uploaded for the selected agency yet.",
+            uploadedAt: "Uploaded:",
+            newBadge: "NEW",
+            viewBtn: "Preview",
+            close: "Close",
+            download: "Download",
+            loadingDoc: "Opening document...",
+            searchPlaceholder: "Search Voucher No...",
+            foundPage: "Page",
+            notFound: "0",
+            apiNotConfigured: "Please configure SCRIPT_API_URL inside index.html.",
+            connectionError: "Connection error while loading lists. Please tap Refresh."
+        },
+        de: {
+            disclaimer: "Die uns von den Reiseagenturen zugesandten Abreiseinformationen sind unten aufgeführt; bitte überprüfen Sie diese anhand Ihrer Transfer-Vouchernummer. Für Agenturtransfers übernimmt unser Haus keinerlei Verantwortung. Wir wünschen Ihnen eine angenehme Reise und freuen uns auf ein Wiedersehen.",
+            refresh: "Aktualisieren",
+            allAgencies: "ALLE",
+            otherAgency: "SONSTIGE",
+            loadingList: "Aktuelle Abreiselisten werden geladen...",
+            emptyList: "Derzeit sind keine aktiven Abreiselisten vorhanden.",
+            emptyAgency: "Für diesen Reiseveranstalter wurde noch keine aktuelle Liste hochgeladen.",
+            uploadedAt: "Hochgeladen:",
+            newBadge: "NEU",
+            viewBtn: "Ansehen",
+            close: "Schließen",
+            download: "laden",
+            loadingDoc: "Dokument wird geöffnet...",
+            searchPlaceholder: "Vouchernr. suchen...",
+            foundPage: "Seite",
+            notFound: "0",
+            apiNotConfigured: "Bitte SCRIPT_API_URL in index.html eintragen.",
+            connectionError: "Verbindungsfehler beim Laden. Bitte erneut versuchen."
+        },
+        ru: {
+            disclaimer: "Ниже представлена информация о выезде, отправленная нам туристическими агентствами; пожалуйста, проверьте данные по номеру вашего трансферного ваучера. Администрация отеля не несет никакой ответственности за трансферы агентств. Желаем вам приятного путешествия и надеемся на новую встречу!",
+            refresh: "Обновить",
+            allAgencies: "ВСЕ",
+            otherAgency: "ДРУГИЕ",
+            loadingList: "Загрузка актуальных списков...",
+            emptyList: "На данный момент активных списков на выезд нет.",
+            emptyAgency: "Для выбранного агентства список еще не загружен.",
+            uploadedAt: "Загружено:",
+            newBadge: "НОВОЕ",
+            viewBtn: "Открыть",
+            close: "Закрыть",
+            download: "Скачать",
+            loadingDoc: "Открытие документа...",
+            searchPlaceholder: "Поиск по ваучеру...",
+            foundPage: "Стр.",
+            notFound: "Нет",
+            apiNotConfigured: "Укажите SCRIPT_API_URL в файле index.html.",
+            connectionError: "Ошибка подключения. Пожалуйста, нажмите Обновить."
+        }
+    };
+
+    let currentLang = 'tr';
+    let allFiles = [];
+    let selectedAgency = 'ALL';
+    let currentZoom = 1.0;
+    let activeFileData = null; // İndirme işlemi için aktif dosya
+    let pdfPageTexts = [];     // PDF içi voucher araması için metin önbelleği
+    const fileMemoryCache = {}; // Açılan dosyaları hafızada tutar (0ms tekrar açılış)
+
+    // Başlangıçta dil algıla ve listeleri çek
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramLang = urlParams.get('lang');
+        const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
+
+        if (paramLang && i18n[paramLang]) {
+            currentLang = paramLang;
+        } else if (i18n[browserLang]) {
+            currentLang = browserLang;
+        } else {
+            currentLang = 'en';
+        }
+
+        changeLang(currentLang);
+        fetchFiles(false);
+
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 500);
+        }, 450);
+    });
+
+    function changeLang(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        const t = i18n[lang];
+
+        ['tr', 'en', 'de', 'ru'].forEach(l => {
+            document.getElementById('lang-' + l).classList.toggle('active', l === lang);
+        });
+
+        document.getElementById('disclaimer-text').innerText = t.disclaimer;
+        document.getElementById('btn-refresh-text').innerText = t.refresh;
+        document.getElementById('modal-close-text').innerText = t.close;
+        document.getElementById('modal-download-text').innerText = t.download;
+        document.getElementById('modal-loading-text').innerText = t.loadingDoc;
+        document.getElementById('voucher-input').placeholder = t.searchPlaceholder;
+        const loadingEl = document.getElementById('loading-list-text');
+        if (loadingEl) loadingEl.innerText = t.loadingList;
+
+        renderAgencyFilters();
+        renderFiles();
+    }
+
+    async function fetchFiles(forceRefresh) {
+        const container = document.getElementById('files-container');
+        const refreshIcon = document.getElementById('refresh-icon');
+        const t = i18n[currentLang];
+
+        if (!SCRIPT_API_URL || SCRIPT_API_URL.indexOf("http") !== 0) {
+            container.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-xs font-medium text-center">${t.apiNotConfigured}</div>`;
+            renderAgencyFilters();
+            return;
+        }
+
+        refreshIcon.classList.add('fa-spin');
+        if (allFiles.length === 0) {
+            container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs font-medium">
+                <div class="spinner mx-auto mb-3" style="width:28px; height:28px; border-width:2px;"></div>
+                <span>${t.loadingList}</span>
+            </div>`;
+        }
+
+        try {
+            const url = SCRIPT_API_URL + "?action=list" + (forceRefresh ? "&nocache=1&t=" + Date.now() : "");
+            const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+            const data = await res.json();
+
+            if (data.status === "ok") {
+                allFiles = data.files || [];
+                renderAgencyFilters();
+                renderFiles();
+            } else {
+                throw new Error(data.message || "API Error");
+            }
+        } catch (err) {
+            container.innerHTML = `<div class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-xs font-semibold text-center">${t.connectionError}</div>`;
+        } finally {
+            refreshIcon.classList.remove('fa-spin');
+        }
+    }
+
+    function renderAgencyFilters() {
+        const filterBar = document.getElementById('agency-filters');
+        const t = i18n[currentLang];
+        const baseAgencies = ["ANEX", "CORAL", "CORENDON", "DIANA", "PEGAS", "TUI", "DIGER"];
+
+        // Dosya sayılarını hesapla
+        const counts = {};
+        allFiles.forEach(f => { counts[f.agency] = (counts[f.agency] || 0) + 1; });
+
+        let html = `<button onclick="selectAgency('ALL')" class="agency-chip ${selectedAgency === 'ALL' ? 'active' : ''}">
+                        ${t.allAgencies} (${allFiles.length})
+                    </button>`;
+
+        baseAgencies.forEach(ag => {
+            const count = counts[ag] || 0;
+            // Sadece dosyası olanları veya seçili olanı öne çıkar, diğerlerini de göster
+            const label = (ag === "DIGER") ? t.otherAgency : ag;
+            html += `<button onclick="selectAgency('${ag}')" class="agency-chip ${selectedAgency === ag ? 'active' : ''} ${count === 0 ? 'opacity-55' : ''}">
+                        ${label}${count > 0 ? ' (' + count + ')' : ''}
+                     </button>`;
+        });
+
+        filterBar.innerHTML = html;
+    }
+
+    function selectAgency(agency) {
+        selectedAgency = agency;
+        renderAgencyFilters();
+        renderFiles();
+    }
+
+    function renderFiles() {
+        const container = document.getElementById('files-container');
+        const t = i18n[currentLang];
+
+        if (!SCRIPT_API_URL || SCRIPT_API_URL.indexOf("http") !== 0) return;
+
+        const filtered = selectedAgency === 'ALL'
+            ? allFiles
+            : allFiles.filter(f => f.agency === selectedAgency);
+
+        if (filtered.length === 0) {
+            const msg = allFiles.length === 0 ? t.emptyList : t.emptyAgency;
+            container.innerHTML = `
+                <div class="text-center py-10 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <i class="fa-regular fa-folder-open text-2xl text-gray-300 mb-2 block"></i>
+                    <p class="text-xs text-gray-500 font-medium">${msg}</p>
+                </div>`;
+            return;
+        }
+
+        const nowMs = Date.now();
+        const twoHoursMs = 2 * 60 * 60 * 1000;
+
+        container.innerHTML = filtered.map(file => {
+            const isRecent = (nowMs - file.timestamp) <= twoHoursMs;
+            const agencyDisplay = file.agency === "DIGER" ? t.otherAgency : file.agency;
+            const isImg = (file.mimeType && file.mimeType.indexOf("image") !== -1) || /\.(jpg|jpeg|png)$/i.test(file.title);
+            const iconClass = isImg ? "fa-regular fa-file-image text-sky-500" : "fa-regular fa-file-pdf text-rose-500";
+
+            return `
+            <div onclick="openPreview('${file.id}')" class="file-card flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                        <i class="${iconClass} text-lg"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-[#49bad5]/15 text-[#0284c7]">
+                                ${escapeHtml(agencyDisplay)}
+                            </span>
+                            ${isRecent ? `<span class="now-badge"><span class="pulse-dot"></span>${t.newBadge}</span>` : ''}
+                        </div>
+                        <div class="text-[12px] font-bold text-slate-700 truncate">${escapeHtml(file.title)}</div>
+                        <div class="text-[10px] text-gray-400 font-semibold mt-0.5">
+                            <i class="fa-regular fa-clock mr-1"></i>${t.uploadedAt} ${file.dateStr} - <b>${file.timeStr}</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="shrink-0 flex items-center text-[#49bad5] bg-sky-50 px-2.5 py-2 rounded-lg border border-sky-100 text-[10px] font-bold">
+                    <span class="mr-1 hidden sm:inline">${t.viewBtn}</span>
+                    <i class="fa-solid fa-eye text-xs"></i>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // =========================================================================
+    // ÖZEL ÖNİZLEME MOTORU (PDF.js + Görsel Destekli + Voucher Arama)
+    // =========================================================================
+    async function openPreview(fileId) {
+        const meta = allFiles.find(f => f.id === fileId);
+        if (!meta) return;
+
+        const t = i18n[currentLang];
+        const modal = document.getElementById('preview-modal');
+        const loader = document.getElementById('preview-loader');
+        const wrapper = document.getElementById('preview-pages-wrapper');
+        const searchBox = document.getElementById('pdf-search-box');
+
+        document.getElementById('modal-agency-badge').innerText = meta.agency === "DIGER" ? t.otherAgency : meta.agency;
+        document.getElementById('modal-file-title').innerText = meta.title;
+        document.getElementById('voucher-input').value = '';
+        document.getElementById('search-match-info').innerText = '';
+
+        wrapper.innerHTML = '';
+        loader.style.display = 'block';
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        currentZoom = 1.0;
+        updateZoomLabel();
+        pdfPageTexts = [];
+
+        try {
+            let filePayload = fileMemoryCache[fileId];
+            if (!filePayload) {
+                const res = await fetch(`${SCRIPT_API_URL}?action=file&id=${encodeURIComponent(fileId)}`, { method: 'GET', redirect: 'follow' });
+                const data = await res.json();
+                if (data.status !== "ok") throw new Error(data.message || "File error");
+                filePayload = data;
+                fileMemoryCache[fileId] = data;
+            }
+
+            activeFileData = { ...filePayload, cleanTitle: meta.title };
+            const isImg = (filePayload.mimeType && filePayload.mimeType.indexOf('image') !== -1) || /\.(jpg|jpeg|png|webp)$/i.test(meta.title);
+
+            loader.style.display = 'none';
+
+            if (isImg) {
+                searchBox.classList.add('hidden');
+                const img = document.createElement('img');
+                img.src = `data:${filePayload.mimeType || 'image/jpeg'};base64,${filePayload.base64}`;
+                img.className = 'pdf-page-canvas w-full';
+                img.style.width = '100%';
+                wrapper.appendChild(img);
+            } else {
+                searchBox.classList.remove('hidden');
+                await renderPdfFromBase64(filePayload.base64, wrapper);
+            }
+        } catch (err) {
+            loader.style.display = 'none';
+            wrapper.innerHTML = `<div class="bg-red-500/20 border border-red-400/40 text-white rounded-xl p-5 text-xs text-center mt-10">${t.connectionError}</div>`;
+        }
+    }
+
+    async function renderPdfFromBase64(base64, wrapper) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+
+        const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            // iOS Safari bellek sınırını aşmadan Retina netliğinde çizim (scale: 2.0)
+            const viewport = page.getViewport({ scale: 2.0 });
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'pdf-page-canvas';
+            canvas.dataset.pageNumber = pageNum;
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.width = (currentZoom * 100) + '%';
+
+            wrapper.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            // Voucher numarası araması için sayfa metnini kaydet
+            try {
+                const textContent = await page.getTextContent();
+                const joinedText = textContent.items.map(item => item.str).join(' ').toLowerCase();
+                pdfPageTexts.push({ pageNum, text: joinedText, canvas });
+            } catch (e) {}
+        }
+    }
+
+    function searchInPdf(query) {
+        const infoEl = document.getElementById('search-match-info');
+        const t = i18n[currentLang];
+        const cleanQuery = (query || '').trim().toLowerCase();
+
+        pdfPageTexts.forEach(p => p.canvas.classList.remove('page-highlight'));
+
+        if (cleanQuery.length < 2 || pdfPageTexts.length === 0) {
+            infoEl.innerText = '';
+            return;
+        }
+
+        const matches = pdfPageTexts.filter(p => p.text.indexOf(cleanQuery) !== -1);
+        if (matches.length > 0) {
+            matches.forEach(m => m.canvas.classList.add('page-highlight'));
+            infoEl.innerText = `${t.foundPage} ${matches.map(m => m.pageNum).join(',')}`;
+            matches[0].canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            infoEl.innerText = t.notFound;
+        }
+    }
+
+    function adjustZoom(delta) {
+        currentZoom = Math.min(3.0, Math.max(0.8, +(currentZoom + delta).toFixed(2)));
+        applyZoom();
+    }
+
+    function resetZoom() {
+        currentZoom = 1.0;
+        applyZoom();
+    }
+
+    function applyZoom() {
+        updateZoomLabel();
+        const pages = document.querySelectorAll('#preview-pages-wrapper .pdf-page-canvas');
+        pages.forEach(el => {
+            el.style.width = (currentZoom * 100) + '%';
+            el.style.maxWidth = 'none';
+        });
+        const wrapper = document.getElementById('preview-pages-wrapper');
+        wrapper.style.alignItems = currentZoom > 1.0 ? 'flex-start' : 'center';
+    }
+
+    function updateZoomLabel() {
+        document.getElementById('zoom-level-label').innerText = Math.round(currentZoom * 100) + '%';
+    }
+
+    function downloadCurrentFile() {
+        if (!activeFileData) return;
+        const link = document.createElement('a');
+        link.href = `data:${activeFileData.mimeType || 'application/pdf'};base64,${activeFileData.base64}`;
+        link.download = activeFileData.cleanTitle || 'Departure_List.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function closePreview() {
+        document.getElementById('preview-modal').classList.remove('open');
+        document.getElementById('preview-pages-wrapper').innerHTML = '';
+        document.body.style.overflow = '';
+        activeFileData = null;
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, s => ({
+            '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
+        }[s]));
+    }
+</script>
+
+</body>
+</html>
