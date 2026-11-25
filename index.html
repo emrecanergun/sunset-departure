@@ -16,7 +16,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,10 +33,24 @@
         .dashed-border-y { border-top: 1px dashed #e5e7eb; border-bottom: 1px dashed #e5e7eb; }
         .dashed-border-t { border-top: 1px dashed #e5e7eb; }
 
-        .crystal-panel {
-            background-color: #49bad5; border-radius: 12px; padding: 14px 16px; color: #ffffff;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5), 0 4px 10px rgba(73, 186, 213, 0.2);
+        /* Yenilenmiş Kurumsal Bilgi Kartı */
+        .info-card {
+            background: linear-gradient(145deg, #f4fbfe 0%, #ffffff 100%);
+            border: 1px solid #d4eef7;
+            border-top: 3px solid #49bad5;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(73, 186, 213, 0.10);
+            overflow: hidden;
         }
+        .voucher-highlight {
+            background-color: #e0f5fb;
+            color: #0369a1;
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-weight: 700;
+            border: 1px solid rgba(73, 186, 213, 0.35);
+        }
+
         .crystal-btn {
             background-color: #49bad5; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.05);
             color: #ffffff; font-weight: 600; transition: all 0.15s ease; cursor: pointer; border: 1px solid #3ca5be;
@@ -45,7 +59,7 @@
 
         .lang-btn {
             padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
-            font-size: 9px; font-weight: 700; color: #374151; transition: all 0.15s ease;
+            font-size: 9px; font-weight: 700; color: #374151; transition: all 0.15s ease; cursor: pointer;
         }
         .lang-btn.active { background-color: #e0f2fe; border-color: #49bad5; color: #0369a1; }
 
@@ -97,6 +111,7 @@
 <body>
 
 <div class="app-container">
+    <!-- Üst Bar -->
     <div class="flex justify-between items-center px-5 pt-3.5 shrink-0">
         <button type="button" onclick="fetchFiles(true)" class="text-gray-500 hover:text-sky-600 transition flex items-center bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-sm active:scale-95">
             <i id="refresh-icon" class="fa-solid fa-rotate-right text-[10px] mr-1.5 text-[#49bad5]"></i>
@@ -111,28 +126,45 @@
         </div>
     </div>
 
+    <!-- Başlık (Büyük İ Sorunu Kesin Olarak Çözüldü) -->
     <div class="text-center px-5 mt-4 shrink-0">
-        <h1 class="font-['Cinzel'] font-bold text-2xl tracking-[4px] text-[#1e293b]">
+        <h1 lang="en" class="font-['Cinzel'] font-bold text-2xl tracking-[4px] text-[#1e293b]">
             CRYSTAL SUNSET
         </h1>
-        <p class="text-[11px] text-[#49bad5] mt-1 font-bold tracking-[0.28em] uppercase">
-            Departure List
+        <p lang="en" class="text-[11px] text-[#49bad5] mt-1 font-bold tracking-[0.28em]">
+            DEPARTURE LIST
         </p>
     </div>
 
+    <!-- Vurgulu Kurumsal Bilgilendirme Kartı -->
     <div class="px-5 mt-3.5 shrink-0">
-        <div class="crystal-panel text-[11.5px] leading-relaxed text-left">
-            <div class="flex items-start gap-2.5">
-                <i class="fa-solid fa-plane-departure text-white/90 text-sm mt-0.5 shrink-0"></i>
-                <p id="disclaimer-text" class="font-medium">Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir, transfer voucher numarası üzerinden kontrol sağlayınız. Acente transferleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır. Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle.</p>
+        <div class="info-card">
+            <div class="p-3.5 space-y-2.5">
+                <div class="flex items-start gap-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-[#49bad5]/15 text-[#0284c7] flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-plane-departure text-xs"></i>
+                    </div>
+                    <p id="info-main" class="text-[11.5px] text-slate-700 leading-relaxed font-medium"></p>
+                </div>
+
+                <div class="flex items-start gap-2 bg-amber-50/80 border border-amber-200/70 rounded-lg px-2.5 py-2">
+                    <i class="fa-solid fa-circle-info text-amber-500 text-[11px] mt-0.5 shrink-0"></i>
+                    <p id="info-notice" class="text-[10.5px] text-amber-900/85 leading-snug font-medium"></p>
+                </div>
+            </div>
+
+            <div class="bg-[#49bad5] px-3.5 py-2 text-center">
+                <p id="info-farewell" class="text-[10.5px] text-white font-semibold tracking-wide"></p>
             </div>
         </div>
     </div>
 
+    <!-- Acente Filtreleri -->
     <div class="dashed-border-y py-2.5 mt-3.5 px-5 shrink-0 bg-gray-50/50">
         <div id="agency-filters" class="flex space-x-1.5 overflow-x-auto hide-scroll"></div>
     </div>
 
+    <!-- Liste Alanı -->
     <div class="px-5 py-3.5 flex-grow">
         <div id="files-container" class="space-y-2.5">
             <div class="text-center py-10 text-gray-400 text-xs font-medium">
@@ -142,11 +174,13 @@
         </div>
     </div>
 
+    <!-- Alt Logo -->
     <div class="dashed-border-t py-3 mt-auto flex justify-center items-center bg-white shrink-0">
         <img src="mainlogo.png" alt="Crystal Hotels" onerror="this.style.display='none'" class="h-6 object-contain opacity-85">
     </div>
 </div>
 
+<!-- ÖZEL ÖNİZLEME MODALI -->
 <div id="preview-modal">
     <div class="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between shadow-sm shrink-0">
         <button type="button" onclick="closePreview()" class="flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
@@ -155,7 +189,7 @@
         </button>
 
         <div class="text-center px-2 overflow-hidden flex-1">
-            <div id="modal-agency-badge" class="text-[10px] font-extrabold text-[#49bad5] tracking-wider uppercase"></div>
+            <div id="modal-agency-badge" class="text-[10px] font-extrabold text-[#49bad5] tracking-wider"></div>
             <div id="modal-file-title" class="text-[11px] font-semibold text-gray-700 truncate"></div>
         </div>
 
@@ -199,7 +233,9 @@
 
     const i18n = {
         tr: {
-            disclaimer: "Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir, transfer voucher numarası üzerinden kontrol sağlayınız. Acente transferleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır. Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle.",
+            infoMain: `Acenteler tarafından tarafımıza gönderilen çıkış bilgileri aşağıda listelenmiştir. Lütfen <span class="voucher-highlight">Transfer Voucher Numaranız</span> üzerinden kontrol sağlayınız.`,
+            infoNotice: `Acente transferleri ve saatleri konusunda işletmemizin herhangi bir sorumluluğu bulunmamaktadır.`,
+            infoFarewell: `✦ Keyifli yolculuklar dileriz, tekrardan görüşmek dileğiyle ✦`,
             refresh: "Yenile", allAgencies: "TÜMÜ", otherAgency: "DİĞER",
             loadingList: "Güncel listeler kontrol ediliyor...",
             emptyList: "Şu an için yüklenmiş aktif bir çıkış listesi bulunmamaktadır.",
@@ -207,10 +243,13 @@
             uploadedAt: "Yüklenme:", newBadge: "YENİ", viewBtn: "Görüntüle",
             close: "Kapat", download: "İndir", loadingDoc: "Belge açılıyor...",
             searchPlaceholder: "Voucher No / İsim ara...", foundPage: "Sayfa", notFound: "Yok",
-            connectionError: "Bağlantı kurulamadı. Apps Script dağıtımında 'Erişimi olanlar: Herkes' seçili olduğundan emin olun."
+            timeoutError: "Sunucu 10 saniye içinde yanıt vermedi. Lütfen 'Yenile' butonuna dokunun.",
+            connectionError: "Bağlantı engellendi. Apps Script'te 'Dağıtımları yönet > Kalem' menüsünden 'Erişimi olanlar: Herkes' seçili olduğundan emin olun."
         },
         en: {
-            disclaimer: "The departure information sent to us by travel agencies is listed below; please check using your transfer voucher number. Our establishment holds no responsibility regarding agency transfers. We wish you a pleasant journey and hope to welcome you again.",
+            infoMain: `The departure information sent by travel agencies is listed below. Please verify using your <span class="voucher-highlight">Transfer Voucher Number</span>.`,
+            infoNotice: `Our establishment holds no responsibility regarding agency transfer operations or schedules.`,
+            infoFarewell: `✦ We wish you a pleasant journey and hope to welcome you again ✦`,
             refresh: "Refresh", allAgencies: "ALL", otherAgency: "OTHER",
             loadingList: "Checking latest departure lists...",
             emptyList: "There are currently no active departure lists available.",
@@ -218,10 +257,13 @@
             uploadedAt: "Uploaded:", newBadge: "NEW", viewBtn: "Preview",
             close: "Close", download: "Download", loadingDoc: "Opening document...",
             searchPlaceholder: "Search Voucher No...", foundPage: "Page", notFound: "0",
+            timeoutError: "Server did not respond in time. Please tap Refresh.",
             connectionError: "Connection error while loading lists. Please tap Refresh."
         },
         de: {
-            disclaimer: "Die uns von den Reiseagenturen zugesandten Abreiseinformationen sind unten aufgeführt; bitte überprüfen Sie diese anhand Ihrer Transfer-Vouchernummer. Für Agenturtransfers übernimmt unser Haus keinerlei Verantwortung. Wir wünschen Ihnen eine angenehme Reise und freuen uns auf ein Wiedersehen.",
+            infoMain: `Die von den Reiseagenturen übermittelten Abreiseinformationen sind unten aufgeführt. Bitte prüfen Sie diese anhand Ihrer <span class="voucher-highlight">Transfer-Vouchernummer</span>.`,
+            infoNotice: `Für Agenturtransfers und Abholzeiten übernimmt unser Haus keinerlei Haftung.`,
+            infoFarewell: `✦ Wir wünschen Ihnen eine angenehme Reise und freuen uns auf ein Wiedersehen ✦`,
             refresh: "Aktualisieren", allAgencies: "ALLE", otherAgency: "SONSTIGE",
             loadingList: "Aktuelle Abreiselisten werden geladen...",
             emptyList: "Derzeit sind keine aktiven Abreiselisten vorhanden.",
@@ -229,10 +271,13 @@
             uploadedAt: "Hochgeladen:", newBadge: "NEU", viewBtn: "Ansehen",
             close: "Schließen", download: "Laden", loadingDoc: "Dokument wird geöffnet...",
             searchPlaceholder: "Vouchernr. suchen...", foundPage: "Seite", notFound: "0",
+            timeoutError: "Zeitüberschreitung der Verbindung. Bitte tippen Sie auf Aktualisieren.",
             connectionError: "Verbindungsfehler beim Laden. Bitte erneut versuchen."
         },
         ru: {
-            disclaimer: "Ниже представлена информация о выезде, отправленная нам туристическими агентствами; пожалуйста, проверьте данные по номеру вашего трансферного ваучера. Администрация отеля не несет никакой ответственности за трансферы агентств. Желаем вам приятного путешествия и надеемся на новую встречу!",
+            infoMain: `Ниже представлена информация о выезде от туристических агентств. Пожалуйста, проверьте данные по <span class="voucher-highlight">номеру трансферного ваучера</span>.`,
+            infoNotice: `Администрация отеля не несет ответственности за организацию и время трансферов агентств.`,
+            infoFarewell: `✦ Желаем вам приятного путешествия и надеемся на новую встречу! ✦`,
             refresh: "Обновить", allAgencies: "ВСЕ", otherAgency: "ДРУГИЕ",
             loadingList: "Загрузка актуальных списков...",
             emptyList: "На данный момент активных списков на выезд нет.",
@@ -240,6 +285,7 @@
             uploadedAt: "Загружено:", newBadge: "НОВОЕ", viewBtn: "Открыть",
             close: "Закрыть", download: "Скачать", loadingDoc: "Открытие документа...",
             searchPlaceholder: "Поиск по ваучеру...", foundPage: "Стр.", notFound: "Нет",
+            timeoutError: "Превышено время ожидания сервера. Нажмите «Обновить».",
             connectionError: "Ошибка подключения. Пожалуйста, нажмите Обновить."
         }
     };
@@ -247,31 +293,12 @@
     let currentLang = 'tr';
     let allFiles = [];
     let selectedAgency = 'ALL';
+    let isLoading = false;
+    let lastErrorKey = null;
     let currentZoom = 1.0;
     let activeFileData = null;
     let pdfPageTexts = [];
     const fileMemoryCache = {};
-
-    // Sayfa hatasında kullanıcıyı "Güncel listeler kontrol ediliyor..." ekranında bırakmayan güvenlik ağı
-    window.addEventListener('error', function(e) {
-        const container = document.getElementById('files-container');
-        if (container && allFiles.length === 0) {
-            container.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-xs font-medium text-center">Sayfa yüklenirken bir uyarı oluştu (${escapeHtml(e.message || '')}). Yenile butonuna basın.</div>`;
-        }
-    });
-
-    (function initApp() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const paramLang = urlParams.get('lang');
-        const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
-
-        if (paramLang && i18n[paramLang]) currentLang = paramLang;
-        else if (i18n[browserLang]) currentLang = browserLang;
-        else currentLang = 'tr';
-
-        changeLang(currentLang);
-        fetchFiles(false);
-    })();
 
     function changeLang(lang) {
         currentLang = lang;
@@ -283,17 +310,36 @@
             if (btn) btn.classList.toggle('active', l === lang);
         });
 
-        document.getElementById('disclaimer-text').innerText = t.disclaimer;
+        document.getElementById('info-main').innerHTML = t.infoMain;
+        document.getElementById('info-notice').innerText = t.infoNotice;
+        document.getElementById('info-farewell').innerText = t.infoFarewell;
         document.getElementById('btn-refresh-text').innerText = t.refresh;
         document.getElementById('modal-close-text').innerText = t.close;
         document.getElementById('modal-download-text').innerText = t.download;
         document.getElementById('modal-loading-text').innerText = t.loadingDoc;
         document.getElementById('voucher-input').placeholder = t.searchPlaceholder;
-        const loadingEl = document.getElementById('loading-list-text');
-        if (loadingEl) loadingEl.innerText = t.loadingList;
 
         renderAgencyFilters();
+
+        // Yükleme sürüyorsa sadece yükleniyor yazısının dilini güncelle, ekranı bozma
+        if (isLoading && allFiles.length === 0) {
+            const loadingEl = document.getElementById('loading-list-text');
+            if (loadingEl) loadingEl.innerText = t.loadingList;
+            return;
+        }
+        if (lastErrorKey && allFiles.length === 0) {
+            showErrorBox(t[lastErrorKey] || t.connectionError);
+            return;
+        }
         renderFiles();
+    }
+
+    function showErrorBox(msg) {
+        document.getElementById('files-container').innerHTML = `
+            <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs font-semibold text-center leading-relaxed">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-base mb-1.5 block"></i>
+                ${escapeHtml(msg)}
+            </div>`;
     }
 
     async function fetchFiles(forceRefresh) {
@@ -301,19 +347,22 @@
         const refreshIcon = document.getElementById('refresh-icon');
         const t = i18n[currentLang];
 
+        isLoading = true;
+        lastErrorKey = null;
         if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
         if (allFiles.length === 0) {
             container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs font-medium">
                 <div class="spinner"></div>
-                <span>${t.loadingList}</span>
+                <span id="loading-list-text">${t.loadingList}</span>
             </div>`;
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const url = SCRIPT_API_URL + "?action=list" + (forceRefresh ? "&nocache=1&t=" + Date.now() : "&t=" + Date.now());
+            const url = SCRIPT_API_URL + "?action=list" + (forceRefresh ? "&nocache=1" : "") + "&t=" + Date.now();
             const res = await fetch(url, { method: 'GET', redirect: 'follow', signal: controller.signal });
             clearTimeout(timeoutId);
 
@@ -322,24 +371,26 @@
             try {
                 data = JSON.parse(rawText);
             } catch (parseErr) {
-                throw new Error(t.connectionError);
+                lastErrorKey = 'connectionError';
+                showErrorBox(i18n[currentLang].connectionError);
+                return;
             }
 
             if (data.status === "ok") {
                 allFiles = data.files || [];
+                isLoading = false;
                 renderAgencyFilters();
                 renderFiles();
             } else {
-                throw new Error(data.message || t.connectionError);
+                lastErrorKey = 'connectionError';
+                showErrorBox(data.message || i18n[currentLang].connectionError);
             }
         } catch (err) {
             clearTimeout(timeoutId);
-            const isTimeout = err && err.name === 'AbortError';
-            const msg = isTimeout
-                ? "Sunucu yanıtı zaman aşımına uğradı. Lütfen 'Yenile' butonuna dokunun."
-                : ((err && err.message && err.message.indexOf("Failed to fetch") === -1) ? err.message : t.connectionError);
-            container.innerHTML = `<div class="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-xs font-semibold text-center leading-relaxed">${escapeHtml(msg)}</div>`;
+            lastErrorKey = (err && err.name === 'AbortError') ? 'timeoutError' : 'connectionError';
+            showErrorBox(i18n[currentLang][lastErrorKey]);
         } finally {
+            isLoading = false;
             if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         }
     }
@@ -370,7 +421,7 @@
     function selectAgency(agency) {
         selectedAgency = agency;
         renderAgencyFilters();
-        renderFiles();
+        if (!isLoading) renderFiles();
     }
 
     function renderFiles() {
@@ -382,7 +433,6 @@
             : allFiles.filter(f => f.agency === selectedAgency);
 
         if (filtered.length === 0) {
-            if (allFiles.length === 0 && container.querySelector('.bg-red-50, .bg-amber-50')) return;
             const msg = allFiles.length === 0 ? t.emptyList : t.emptyAgency;
             container.innerHTML = `
                 <div class="text-center py-10 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -583,6 +633,20 @@
             '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
         }[s]));
     }
+
+    // Başlatma
+    (function initApp() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramLang = urlParams.get('lang');
+        const browserLang = (navigator.language || 'tr').slice(0, 2).toLowerCase();
+
+        if (paramLang && i18n[paramLang]) currentLang = paramLang;
+        else if (i18n[browserLang]) currentLang = browserLang;
+        else currentLang = 'tr';
+
+        changeLang(currentLang);
+        fetchFiles(false);
+    })();
 </script>
 
 </body>
